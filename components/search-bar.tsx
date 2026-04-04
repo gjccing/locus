@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { cn } from "@/lib/utils";
 import { SearchIcon } from "@primer/octicons-react"
 import { SyncIcon } from '@primer/octicons-react'

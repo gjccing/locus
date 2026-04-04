@@ -2,24 +2,11 @@
 import { useState, useEffect } from "react"
 import { SearchBar } from "@/components/search-bar"
 import { getSession } from "next-auth/react"
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Octokit } from "octokit"
 import { useInView } from "react-intersection-observer"
 import { SyncIcon } from "@primer/octicons-react"
 import { cn } from "@/lib/utils"
-
-interface Repository {
-  id: number
-  name: string
-  full_name: string
-  description: string
-  html_url: string
-  private: boolean
-  language: string
-  stargazers_count: number
-  updated_at: string
-}
+import { RepositoryCard, type Repository } from "@/components/repository-card"
 
 export default function Page() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -85,7 +72,7 @@ export default function Page() {
   }, [inView, hasMore, loading, isFetchingMore])
 
   const filteredRepos = repos.filter(repo =>
-    repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (repo.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
@@ -105,45 +92,7 @@ export default function Page() {
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRepos.map((repo) => (
-              <a
-                key={repo.id}
-                href={repo.html_url}
-                target="_blank"
-                rel="noreferrer"
-                className="block outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
-              >
-                <Card className="h-full hover:shadow-md transition-shadow group flex flex-col">
-                  <CardHeader>
-                    <div className="flex justify-between items-start gap-2">
-                      <CardTitle className="truncate group-hover:text-primary transition-colors text-base leading-snug">
-                        {repo.name}
-                      </CardTitle>
-                      <Badge variant={repo.private ? "secondary" : "outline"} className="shrink-0 text-[10px] h-5 px-1.5 font-medium leading-none">
-                        {repo.private ? "Private" : "Public"}
-                      </Badge>
-                    </div>
-                    {repo.description && (
-                      <CardDescription className="line-clamp-2 mt-2 text-sm text-balance">
-                        {repo.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <div className="p-6 pt-0 mt-auto flex items-center gap-4 text-xs text-muted-foreground">
-                    {repo.language && (
-                      <div className="flex items-center gap-1.5">
-                        <div className="size-2 rounded-full bg-primary/60" />
-                        {repo.language}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      ★ {repo.stargazers_count}
-                    </div>
-                    <div className="truncate ml-auto text-[10px]">
-                      Updated {new Date(repo.updated_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                </Card>
-              </a>
+              <RepositoryCard key={repo.id} repo={repo} />
             ))}
             {!loading && filteredRepos.length === 0 && repos.length > 0 && (
               <div className="col-span-full text-center text-muted-foreground p-8">

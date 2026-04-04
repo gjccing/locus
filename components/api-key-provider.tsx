@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react"
+import { getSession } from "next-auth/react"
 
 export type ConfigStatus = "active" | "error" | "idle"
 
@@ -90,18 +91,22 @@ export function useAPIKeys() {
   return context
 }
 
-export function APIKeyProvider({ secret, children }: { secret: string, children: React.ReactNode }) {
+export function APIKeyProvider({ children }: { children: React.ReactNode }) {
   const [apiKeys, setApiKeys] = useState<APIKeyInfo[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load "api-keys" raw from local storage and decrypt with secret
+  // Load `api-keys-${key}` raw from local storage and decrypt with secret
   useEffect(() => {
     const loadKeys = async () => {
-      if (!secret) {
+      const session = await getSession()
+      if (!session?.user.login || !session?.user.id) {
         setIsLoaded(true)
         return
       }
-      const stored = localStorage.getItem("api-keys")
+
+      const key = session?.user.login
+      const secret = session?.user.id
+      const stored = localStorage.getItem(`api-keys-${key}`)
       if (stored) {
         const decrypted = await decryptData(stored, secret)
         if (decrypted) {
@@ -115,31 +120,34 @@ export function APIKeyProvider({ secret, children }: { secret: string, children:
       setIsLoaded(true)
     }
     loadKeys()
-  }, [secret])
+  }, [])
 
   // When unmount or close the tab, encrypt apiKeys with secret and save to local storage
   useEffect(() => {
-    if (!isLoaded || !secret) return
+    if (!isLoaded) return
 
     const saveKeys = async () => {
+      const session = await getSession()
+      if (!session?.user.login || !session.user.id) {
+        return
+      }
+
+      const key = session.user.login
+      const secret = session.user.id
       const data = JSON.stringify(apiKeys)
       const encrypted = await encryptData(data, secret)
-      localStorage.setItem("api-keys", encrypted)
+      localStorage.setItem(`api-keys-${key}`, encrypted)
     }
 
     // Save on every change
     saveKeys()
 
-    const handleBeforeUnload = () => {
-      saveKeys()
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("beforeunload", saveKeys)
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("beforeunload", saveKeys)
       saveKeys() // Save on unmount
     }
-  }, [apiKeys, secret, isLoaded])
+  }, [apiKeys, isLoaded])
 
   const addAPIKey = useCallback((apiKey: APIKeyInfo) => {
     setApiKeys((prev) => [...prev, apiKey])

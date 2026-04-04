@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { PlayIcon, SyncIcon } from '@primer/octicons-react'
 import { testApiKey } from "@/app/actions/api-test"
 import type { APIKeyInfo, AIProvider } from "@/components/api-key-provider"
+import { InlineCode } from "@/components/ui/typography"
 
 interface APIKeyCardProps extends APIKeyInfo {
   className?: string
@@ -167,8 +168,7 @@ export function APIKeyCard({
             </FieldLabel>
             <Input
               id={`key-${id}-token`}
-              type="password"
-              name="api-token"
+              type="text"
               defaultValue={token}
               onChange={(e) => setCurrentToken(e.target.value)}
               onBlur={handleBlur}
@@ -217,7 +217,7 @@ export function APIKeyCard({
                   <AlertDialogHeader className="gap-2">
                     <AlertDialogTitle>Test API Key</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will send a <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">Hello, world!</code> prompt to the provider to verify your configuration.
+                      This will send a <InlineCode>Hello, world!</InlineCode> prompt to the provider to verify your configuration.
                     </AlertDialogDescription>
                     <AlertDialogDescription className="italic">
                       Please note that this operation will consume tokens from your account.
@@ -234,7 +234,7 @@ export function APIKeyCard({
                     )}
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Close</AlertDialogCancel>
                     <AlertDialogAction onClick={handleTest} disabled={isTesting}>
                       {isTesting ? (
                         <>

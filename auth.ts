@@ -9,6 +9,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       login?: string;
+      id?: string;
     };
   }
 }
@@ -27,6 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account) {
         token.accessToken = account.access_token
         token.login = profile?.login
+        token.id = profile?.id // Capture GitHub user ID
       }
       return token
     },
@@ -35,6 +37,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.accessToken = token.accessToken as string
       if (session.user) {
         session.user.login = token.login as string
+        session.user.id = (token.id as string) || (token.sub as string)
       }
       return session
     },

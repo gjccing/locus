@@ -20,6 +20,8 @@ interface ContributorsStackProps {
   limit?: number
 }
 
+import { Small } from "@/components/ui/typography"
+
 export function ContributorsStack({ repoOwner, repoName, className, limit = 3 }: ContributorsStackProps) {
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,7 +78,7 @@ export function ContributorsStack({ repoOwner, repoName, className, limit = 3 }:
       ))}
       {remaining > 0 && (
         <AvatarGroupCount className="z-0 -translate-x-2 group-hover/stack:translate-x-0 transition-all duration-300">
-          <span className="font-bold text-zinc-500">+{remaining}</span>
+          <Small className="font-bold text-zinc-500">+{remaining}</Small>
         </AvatarGroupCount>
       )}
     </AvatarGroup>

@@ -6,6 +6,8 @@ import { PlusIcon } from "@primer/octicons-react"
 import { useAPIKeys } from "@/components/api-key-provider"
 import { useEffect, useRef } from "react"
 
+import { Small } from "@/components/ui/typography"
+
 export function ApiKeyList() {
   const { apiKeys, addAPIKey, updateAPIKey, deleteAPIKey } = useAPIKeys()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -29,9 +31,9 @@ export function ApiKeyList() {
 
   return (
     <div ref={scrollRef} className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
-      <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+      <Small className="tracking-widest text-muted-foreground uppercase text-xs">
         Model API Keys
-      </h3>
+      </Small>
       {apiKeys.map((keyInfo) => (
         <APIKeyCard
           key={keyInfo.id}

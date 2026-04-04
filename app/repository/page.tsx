@@ -6,6 +6,7 @@ import { Octokit } from "octokit"
 import { useInView } from "react-intersection-observer"
 import { SyncIcon } from "@primer/octicons-react"
 import { cn } from "@/lib/utils"
+import { H1, Muted } from "@/components/ui/typography"
 import { RepositoryCard, type Repository } from "@/components/repository-card"
 
 export default function Page() {
@@ -78,16 +79,16 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-8 p-6">
-      <h1 className="text-3xl font-extrabold tracking-tight text-on-surface font-headline">Repositories</h1>
+      <H1 className="text-3xl text-on-surface font-headline">Repositories</H1>
       <SearchBar
         value={searchTerm}
         onChange={setSearchTerm}
         results={filteredRepos.length}
       />
       {!loading && repos.length === 0 ? (
-        <div className="text-center text-muted-foreground p-8">
+        <Muted className="text-center p-8">
           No repositories found or you are not authenticated.
-        </div>
+        </Muted>
       ) : (
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,9 +96,9 @@ export default function Page() {
               <RepositoryCard key={repo.id} repo={repo} />
             ))}
             {!loading && filteredRepos.length === 0 && repos.length > 0 && (
-              <div className="col-span-full text-center text-muted-foreground p-8">
+              <Muted className="col-span-full text-center p-8">
                 No repositories found matching &quot;{searchTerm}&quot;.
-              </div>
+              </Muted>
             )}
           </div>
           <div
@@ -108,16 +109,16 @@ export default function Page() {
             )}
           >
             {(isFetchingMore || loading) && (
-              <div className="flex items-center gap-2 text-muted-foreground animate-in fade-in duration-500">
+              <Muted className="flex items-center gap-2 animate-in fade-in duration-500">
                 <SyncIcon className="animate-spin" />
-                <span>Loading more...</span>
-              </div>
+                Loading more...
+              </Muted>
             )}
           </div>
           {!hasMore && repos.length > 0 && (
-            <div className="text-center text-muted-foreground/50 text-xs pb-8">
+            <Muted className="text-center opacity-50 text-xs pb-8">
               No more repositories to load.
-            </div>
+            </Muted>
           )}
         </div>
       )}

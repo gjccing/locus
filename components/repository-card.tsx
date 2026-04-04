@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { MarkGithubIcon, GitBranchIcon, HistoryIcon } from "@primer/octicons-react"
 import { ContributorsStack } from "@/components/contributors-stack"
+import { P } from "@/components/ui/typography"
 
 export interface Repository {
   id: number
@@ -57,9 +58,9 @@ export function RepositoryCard({ repo }: RepositoryCardProps) {
         </CardHeader>
 
         <CardContent className="flex-1 pb-6 px-6">
-          <p className="text-[17px] leading-[1.6] text-zinc-500 font-medium line-clamp-2">
+          <P className="text-[17px] text-zinc-500 font-medium line-clamp-2 mt-0">
             {repo.description || "No description provided."}
-          </p>
+          </P>
         </CardContent>
 
         <CardFooter className="flex items-center justify-between py-5 px-0 mx-6 border-t border-surface-container">

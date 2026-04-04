@@ -25,7 +25,7 @@ export function SearchBar({
   const handleChange = useMemo(() =>
     _debounce((e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e.target.value)
-    }, 300), [onChange])
+    }, 500), [onChange])
 
   return (
     <InputGroup className={cn("w-full px-1 py-1 h-auto", className)}>
@@ -39,7 +39,7 @@ export function SearchBar({
         onChange={handleChange}
       />
       <InputGroupAddon align="inline-end">
-        {loading && <SyncIcon size={16} />}
+        {loading && <SyncIcon className="animate-spin" />}
         {!loading && value && `${results} results`}
       </InputGroupAddon>
     </InputGroup>

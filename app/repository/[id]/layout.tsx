@@ -1,5 +1,5 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { Explorer } from "@/components/explorer"
 import { TabProvider } from "@/components/tab-context"
 
 import { RepoProvider } from "@/components/repo-context"
@@ -13,7 +13,7 @@ export default function WorkstationLayout({
     <TabProvider>
       <RepoProvider>
         <SidebarProvider className="relative min-h-[inherit]">
-          <AppSidebar className="absolute max-h-full" />
+          <Explorer className="absolute max-h-full" />
           <div className="flex-1 overflow-auto">
             {children}
           </div>

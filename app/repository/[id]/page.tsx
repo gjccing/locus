@@ -5,49 +5,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { XIcon, SyncIcon } from '@primer/octicons-react'
 import { useRepo } from "@/components/repo-context"
-import { useState, useEffect } from "react"
-import { readFile } from "@/lib/git-service"
-
-function FileContent({ filepath }: { filepath: string }) {
-  const { repo } = useRepo()
-  const [content, setContent] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchContent() {
-      if (!repo || !filepath) return
-      try {
-        setLoading(true)
-        const text = await readFile(repo.owner.login, repo.name, filepath)
-        setContent(text)
-      } catch (err) {
-        console.error("Error reading file:", err)
-        setContent("Error loading file content")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchContent()
-  }, [repo, filepath])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full p-8 text-muted-foreground">
-        <SyncIcon className="animate-spin mr-2" />
-        Loading {filepath}...
-      </div>
-    )
-  }
-
-  return (
-    <pre className="p-4 overflow-auto h-full text-sm font-mono whitespace-pre bg-zinc-50 rounded-md border text-zinc-800">
-      {content}
-    </pre>
-  )
-}
 
 export default function RepositoryDetailPage() {
-  const { tabs, activeTabId, removeTab, setActiveTabId } = useTabs()
+  const { tabs, activeTabId, removeTab, setActiveTabId, addTab } = useTabs()
   const { loading, error } = useRepo()
 
   if (loading && tabs.length === 0) {
@@ -79,8 +39,8 @@ export default function RepositoryDetailPage() {
         <TabsList variant="line" className="justify-start h-12 px-2 gap-2 bg-transparent">
           <SidebarTrigger />
           {tabs.map((tab) => (
-            <TabsTrigger 
-              key={tab.id} 
+            <TabsTrigger
+              key={tab.id}
               value={tab.id}
               className="flex items-center gap-2 px-3 py-1.5 text-sm"
             >
@@ -105,12 +65,12 @@ export default function RepositoryDetailPage() {
           </div>
         ) : (
           tabs.map((tab) => (
-            <TabsContent 
-              key={tab.id} 
-              value={tab.id} 
+            <TabsContent
+              key={tab.id}
+              value={tab.id}
               className="h-full m-0 data-[state=inactive]:hidden"
             >
-              <FileContent filepath={tab.id} />
+              {/* TODO: Just show the branch name */}
             </TabsContent>
           ))
         )}

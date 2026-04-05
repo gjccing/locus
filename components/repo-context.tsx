@@ -4,12 +4,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { getSession } from 'next-auth/react'
 import { Octokit } from 'octokit'
-import { cloneRepository, getBranches, resolveBranchTree, BranchTreeNode } from '@/lib/git-service'
+import { cloneRepository, resolveBranchTree, BranchTreeNode } from '@/lib/git-service'
 import { Repository } from '@/components/repository-card'
 
 interface RepoContextType {
   repo: Repository | null
-  branches: string[]
   branchTree: BranchTreeNode[]
   loading: boolean
   error: string | null
@@ -23,12 +22,11 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
   const id = params.id as string
   
   const [repo, setRepo] = useState<Repository | null>(null)
-  const [branches, setBranches] = useState<string[]>([])
   const [branchTree, setBranchTree] = useState<BranchTreeNode[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cloneProgress, setCloneProgress] = useState(0)
-
+  
   useEffect(() => {
     if (!id) return
 
@@ -49,8 +47,8 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
         
         let repoData: Repository
         if (!isNaN(Number(id))) {
-          const { data } = await octokit.request('GET /repositories/{id}', { 
-            id: Number(id) 
+          const { data } = await octokit.request('GET /repositories/{id}', {
+            id: Number(id)
           })
           repoData = data as Repository
         } else {
@@ -66,9 +64,9 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
           setCloneProgress(p)
         })
 
-        // Get branches
-        const branchList = await getBranches(repoData.owner.login, repoData.name)
-        setBranches(branchList)
+        // // Get branches
+        // const branchList = await getBranches(repoData.owner.login, repoData.name)
+        // setBranches(branchList)
 
         // Get branch tree (hierarchy)
         const bTree = await resolveBranchTree(repoData.owner.login, repoData.name)
@@ -86,7 +84,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
   }, [id])
 
   return (
-    <RepoContext.Provider value={{ repo, branches, branchTree, loading, error, cloneProgress }}>
+    <RepoContext.Provider value={{ repo, branchTree, loading, error, cloneProgress }}>
       {children}
     </RepoContext.Provider>
   )

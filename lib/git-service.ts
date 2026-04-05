@@ -35,7 +35,7 @@ export async function cloneRepository(
     http,
     dir,
     corsProxy: 'https://cors.isomorphic-git.org',
-    onAuth: () => ({ username: accessToken }),
+    headers: { Authorization: `Basic ${btoa(accessToken)}` },
     onProgress: (p: { loaded: number; total?: number }) => {
       if (onProgress && p.total) {
         onProgress(Math.round((p.loaded / p.total) * 100));
@@ -83,18 +83,17 @@ export interface BranchTreeNode {
 export async function resolveBranchTree(owner: string, repo: string): Promise<BranchTreeNode[]> {
   const fs = getFS();
   const dir = `/${owner}/${repo}`;
-  const branchNames = await git.listBranches({ fs, dir, remote: 'origin' });
-
+  const branchNames = (await git.listBranches({ fs, dir, remote: 'origin' }))
+    .filter(name => name !== "HEAD")
   // Get history for each branch
   const histories = await Promise.all(branchNames.map(async name => {
     try {
-      const log = await git.log({ fs, dir, ref: `origin/${name}`, depth: 50 });
+      const log = await git.log({ fs, dir, ref: `origin/${name}`, depth: 100 });
       return { name, path: log.map(c => c.oid).reverse() }; // oldest to newest
     } catch {
       return { name, path: [] };
     }
   }));
-
   // Build a trie of commits
   interface InternalNode {
     id: string;
@@ -107,6 +106,7 @@ export async function resolveBranchTree(owner: string, repo: string): Promise<Br
   const root: Map<string, InternalNode> = new Map();
 
   histories.forEach(({ name, path }) => {
+    let previousNode: InternalNode | null = null
     let currentLevel = root;
     path.forEach((sha, index) => {
       if (!currentLevel.has(sha)) {
@@ -119,13 +119,16 @@ export async function resolveBranchTree(owner: string, repo: string): Promise<Br
         });
       }
       const node = currentLevel.get(sha)!;
+      if (previousNode) {
+        previousNode.children.set(sha, node)
+      }
       if (index === path.length - 1) {
         node.branches.push(name);
       }
+      previousNode = node
       currentLevel = node.children;
     });
   });
-
   // Convert trie to the requested BranchTreeNode structure and simplify
   function convertAndSimplify(nodesMap: Map<string, InternalNode>): BranchTreeNode[] {
     const result: BranchTreeNode[] = [];

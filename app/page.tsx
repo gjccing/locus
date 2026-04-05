@@ -5,7 +5,7 @@ import { H1, Lead } from "@/components/ui/typography"
 
 export default function Page() {
   return (
-    <section className="mt-24 flex flex-col justify-center items-center gap-8 px-4">
+    <div className="size-full p-16 md:pb-24 lg:pb-48 flex flex-col justify-center items-center gap-8">
       <H1 className="text-6xl md:text-7xl lg:text-8xl tracking-tighter leading-[0.9] text-center">
         Think in<br /><span className="text-primary italic">Branches.</span>
       </H1>
@@ -25,6 +25,6 @@ export default function Page() {
           </Button>
         </form>
       </div>
-    </section>
+    </div>
   )
 }

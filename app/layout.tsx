@@ -24,11 +24,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
     >
-      <body>
+      <body className="w-max h-max">
         <ThemeProvider>
           <APIKeyProvider>
             <Header />
-            <main className="pt-24 px-6 md:px-12 lg:px-24 pb-12 transition-all max-w-360 mx-auto">
+            <main className="w-dvw min-h-[calc(100dvh-4rem)] transition-all">
               {children}
             </main>
           </APIKeyProvider>

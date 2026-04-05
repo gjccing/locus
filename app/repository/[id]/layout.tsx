@@ -1,3 +1,6 @@
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { TabProvider } from "@/components/tab-context"
 
 export default function WorkstationLayout({
   children,
@@ -5,8 +8,13 @@ export default function WorkstationLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="fixed top-16 left-0 w-dvw h-[calc(100dvh-4rem)]">
-      {children}
-    </div>
+    <TabProvider>
+      <SidebarProvider className="relative min-h-[inherit]">
+        <AppSidebar className="absolute max-h-full" />
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
+      </SidebarProvider>
+    </TabProvider>
   )
 }

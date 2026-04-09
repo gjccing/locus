@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
-import { PlayIcon, SyncIcon } from '@primer/octicons-react'
+import { PlayIcon, SyncIcon } from "@primer/octicons-react"
 import { testApiKey } from "@/app/actions/api-test"
 import type { APIKeyInfo, AIProvider } from "@/components/api-key-provider"
 import { InlineCode } from "@/components/ui/typography"
@@ -71,14 +71,21 @@ export function APIKeyCard({
   const [currentToken, setCurrentToken] = useState(token)
   const [isDirty, setIsDirty] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [testResult, setTestResult] = useState<{
+    success: boolean
+    message: string
+  } | null>(null)
 
   const isProviderInvalid = isDirty && !currentProvider
   const isTokenInvalid = isDirty && !currentToken
 
   const handleBlur = () => {
     setIsDirty(true)
-    onUpdate?.({ name: currentName, provider: currentProvider, token: currentToken })
+    onUpdate?.({
+      name: currentName,
+      provider: currentProvider,
+      token: currentToken,
+    })
   }
 
   const handleTest = async (e: React.MouseEvent) => {
@@ -103,12 +110,16 @@ export function APIKeyCard({
     onUpdate?.({ name: currentName, provider: val, token: currentToken })
   }
 
-
   return (
-    <Card className={cn("group relative transition-shadow hover:shadow-sm", className)}>
+    <Card
+      className={cn(
+        "group relative transition-shadow hover:shadow-sm",
+        className
+      )}
+    >
       <div
         className={cn(
-          "absolute right-4 top-4 size-2.5 rounded-full",
+          "absolute top-4 right-4 size-2.5 rounded-full",
           statusStyles[status]
         )}
         title={statusTitles[status]}
@@ -119,9 +130,12 @@ export function APIKeyCard({
             <Field>
               <FieldLabel
                 htmlFor={`key-${id}-name`}
-                className="font-bold uppercase tracking-wider text-muted-foreground flex items-center"
+                className="flex items-center font-bold tracking-wider text-muted-foreground uppercase"
               >
-                Name <span className="text-[10px] text-muted-foreground/50 ml-1.5 font-normal normal-case">(optional)</span>
+                Name{" "}
+                <span className="ml-1.5 text-[10px] font-normal text-muted-foreground/50 normal-case">
+                  (optional)
+                </span>
               </FieldLabel>
               <Input
                 id={`key-${id}-name`}
@@ -135,14 +149,20 @@ export function APIKeyCard({
             <Field>
               <FieldLabel
                 htmlFor={`key-${id}-provider`}
-                className="font-bold uppercase tracking-wider text-muted-foreground"
+                className="font-bold tracking-wider text-muted-foreground uppercase"
               >
-                Provider <span className="text-destructive ml-0.5">*</span>
+                Provider <span className="ml-0.5 text-destructive">*</span>
               </FieldLabel>
-              <Select defaultValue={provider} onValueChange={handleProviderChange}>
+              <Select
+                defaultValue={provider}
+                onValueChange={handleProviderChange}
+              >
                 <SelectTrigger
                   id={`key-${id}-provider`}
-                  className={cn(isProviderInvalid && "border-destructive shadow-sm shadow-destructive ")}
+                  className={cn(
+                    isProviderInvalid &&
+                      "border-destructive shadow-sm shadow-destructive"
+                  )}
                 >
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -150,7 +170,9 @@ export function APIKeyCard({
                   <SelectItem value="OpenAI">OpenAI</SelectItem>
                   <SelectItem value="Anthropic">Anthropic</SelectItem>
                   <SelectItem value="Gemini">Gemini</SelectItem>
-                  <SelectItem value="Google Vertex AI">Google Vertex AI</SelectItem>
+                  <SelectItem value="Google Vertex AI">
+                    Google Vertex AI
+                  </SelectItem>
                   <SelectItem value="Mistral">Mistral</SelectItem>
                   <SelectItem value="Amazon Bedrock">Amazon Bedrock</SelectItem>
                   <SelectItem value="Cohere">Cohere</SelectItem>
@@ -162,9 +184,9 @@ export function APIKeyCard({
           <Field>
             <FieldLabel
               htmlFor={`key-${id}-token`}
-              className="font-bold uppercase tracking-wider text-muted-foreground"
+              className="font-bold tracking-wider text-muted-foreground uppercase"
             >
-              API Token <span className="text-destructive ml-0.5">*</span>
+              API Token <span className="ml-0.5 text-destructive">*</span>
             </FieldLabel>
             <Input
               id={`key-${id}-token`}
@@ -172,10 +194,15 @@ export function APIKeyCard({
               defaultValue={token}
               onChange={(e) => setCurrentToken(e.target.value)}
               onBlur={handleBlur}
-              placeholder={currentProvider ? tokenPlaceholders[currentProvider] : "API Token"}
+              placeholder={
+                currentProvider
+                  ? tokenPlaceholders[currentProvider]
+                  : "API Token"
+              }
               className={cn(
                 "font-mono",
-                isTokenInvalid && "border-destructive shadow-sm shadow-destructive"
+                isTokenInvalid &&
+                  "border-destructive shadow-sm shadow-destructive"
               )}
               required
             />
@@ -195,7 +222,8 @@ export function APIKeyCard({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete API Key</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this API key? This action cannot be undone.
+                    Are you sure you want to delete this API key? This action
+                    cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -209,7 +237,11 @@ export function APIKeyCard({
             <div className="flex gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="secondary" size="sm" disabled={!currentProvider || !currentToken}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={!currentProvider || !currentToken}
+                  >
                     Test
                   </Button>
                 </AlertDialogTrigger>
@@ -217,28 +249,36 @@ export function APIKeyCard({
                   <AlertDialogHeader className="gap-2">
                     <AlertDialogTitle>Test API Key</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will send a <InlineCode>Hello, world!</InlineCode> prompt to the provider to verify your configuration.
+                      This will send a <InlineCode>Hello, world!</InlineCode>{" "}
+                      prompt to the provider to verify your configuration.
                     </AlertDialogDescription>
                     <AlertDialogDescription className="italic">
-                      Please note that this operation will consume tokens from your account.
+                      Please note that this operation will consume tokens from
+                      your account.
                     </AlertDialogDescription>
                     {testResult && (
                       <AlertDialogDescription
                         className={cn(
-                          "p-4 rounded-md w-full",
-                          testResult.success ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-destructive/10 text-destructive"
+                          "w-full rounded-md p-4",
+                          testResult.success
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-destructive/10 text-destructive"
                         )}
                       >
-                        {testResult.success ? "Response: " : "Error: "} {testResult.message}
+                        {testResult.success ? "Response: " : "Error: "}{" "}
+                        {testResult.message}
                       </AlertDialogDescription>
                     )}
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Close</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleTest} disabled={isTesting}>
+                    <AlertDialogAction
+                      onClick={handleTest}
+                      disabled={isTesting}
+                    >
                       {isTesting ? (
                         <>
-                          <SyncIcon className="animate-spin" />
+                          <SyncIcon className="animate-spin direction-[reverse]" />
                           Testing...
                         </>
                       ) : (

@@ -3,10 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 import { APIKeyProvider } from "@/components/api-key-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -22,15 +23,22 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        geist.variable
+      )}
     >
-      <body className="w-max h-max">
+      <body className="h-max w-max">
         <ThemeProvider>
           <APIKeyProvider>
-            <Header />
-            <main className="w-dvw min-h-[calc(100dvh-4rem)] transition-all">
-              {children}
-            </main>
+            <TooltipProvider>
+              <Header />
+              <main className="min-h-[calc(100dvh-4rem)] w-dvw transition-all">
+                {children}
+              </main>
+            </TooltipProvider>
           </APIKeyProvider>
         </ThemeProvider>
       </body>

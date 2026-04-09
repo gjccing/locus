@@ -14,18 +14,16 @@ export function HeaderNav() {
   const [repoFullName, setRepoFullName] = useState<string | null>(null)
 
   const isRepositoryPage = pathname.startsWith("/repository/")
-  const repoId = isRepositoryPage ? pathname.split("/")[2] : null
+  const [, , owner, name] = isRepositoryPage ? pathname.split("/") : []
 
   useEffect(() => {
     async function fetchRepoName() {
-      if (!repoId) return
+      if (!owner || !name) return
       try {
         const session = (await getSession()) as { accessToken?: string } | null
         if (session?.accessToken) {
           const octokit = new Octokit({ auth: session.accessToken })
-          const { data } = await octokit.request("GET /repositories/{id}", {
-            id: repoId,
-          })
+          const { data } = await octokit.rest.repos.get({ owner, repo: name })
           setRepoFullName(data.full_name)
         }
       } catch (error) {
@@ -33,7 +31,7 @@ export function HeaderNav() {
       }
     }
     fetchRepoName()
-  }, [repoId])
+  }, [owner, name])
 
   if (!isRepositoryPage) return null
 

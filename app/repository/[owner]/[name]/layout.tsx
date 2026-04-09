@@ -13,10 +13,8 @@ export default function WorkstationLayout({
     <TabProvider>
       <RepoProvider>
         <SidebarProvider className="relative min-h-[inherit]">
-          <Explorer className="absolute max-h-full" />
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
+          <Explorer className="absolute max-h-full bg-none" />
+          <div className="flex-1 overflow-auto">{children}</div>
         </SidebarProvider>
       </RepoProvider>
     </TabProvider>

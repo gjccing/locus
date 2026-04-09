@@ -1,6 +1,16 @@
 import Link from "next/link"
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
-import { MarkGithubIcon, GitBranchIcon, HistoryIcon } from "@primer/octicons-react"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
+import {
+  MarkGithubIcon,
+  GitBranchIcon,
+  HistoryIcon,
+} from "@primer/octicons-react"
 import { ContributorsStack } from "@/components/contributors-stack"
 import { P } from "@/components/ui/typography"
 
@@ -45,26 +55,23 @@ function timeAgo(dateString: string) {
 
 export function RepositoryCard({ repo }: RepositoryCardProps) {
   return (
-    <Link
-      href={`/repository/${repo.id}`}
-      className="block outline-none"
-    >
-      <Card className="h-full border border-zinc-200/60 bg-white hover:border-zinc-400 transition-all duration-300 shadow-sm flex flex-col gap-0 overflow-hidden p-0">
-        <CardHeader className="flex flex-row items-center gap-3 pb-4 pt-6 px-6">
+    <Link href={`/repository/${repo.full_name}`} className="block outline-none">
+      <Card className="flex h-full flex-col gap-0 overflow-hidden border border-zinc-200/60 bg-white p-0 shadow-sm transition-all duration-300 hover:border-zinc-400">
+        <CardHeader className="flex flex-row items-center gap-3 px-6 pt-6 pb-4">
           <MarkGithubIcon size={20} className="text-zinc-900" />
-          <CardTitle className="font-bold text-[17px] text-zinc-800 tracking-tight">
+          <CardTitle className="text-[17px] font-bold tracking-tight text-zinc-800">
             {repo.full_name}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex-1 pb-6 px-6">
-          <P className="text-[17px] text-zinc-500 font-medium line-clamp-2 mt-0">
+        <CardContent className="flex-1 px-6 pb-6">
+          <P className="mt-0 line-clamp-2 text-[17px] font-medium text-zinc-500">
             {repo.description || "No description provided."}
           </P>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between py-5 px-0 mx-6 border-t border-surface-container">
-          <div className="flex items-center gap-6 text-[15px] text-zinc-400 font-medium">
+        <CardFooter className="border-surface-container mx-6 flex items-center justify-between border-t px-0 py-5">
+          <div className="flex items-center gap-6 text-[15px] font-medium text-zinc-400">
             <div className="flex items-center gap-2">
               <GitBranchIcon size={16} />
               <span>{repo.default_branch || "main"}</span>
@@ -75,7 +82,10 @@ export function RepositoryCard({ repo }: RepositoryCardProps) {
             </div>
           </div>
 
-          <ContributorsStack repoOwner={repo.owner.login} repoName={repo.name} />
+          <ContributorsStack
+            repoOwner={repo.owner.login}
+            repoName={repo.name}
+          />
         </CardFooter>
       </Card>
     </Link>

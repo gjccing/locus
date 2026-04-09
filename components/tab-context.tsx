@@ -9,35 +9,44 @@ export interface Tab {
 
 interface TabContextType {
   tabs: Tab[]
-  activeTabId: string | null
+  activeTab: Tab | undefined
   addTab: (tab: Tab) => void
-  removeTab: (id: string) => void
-  setActiveTabId: (id: string) => void
+  removeTabById: (id: string) => void
+  setActiveTabById: (id: string) => void
 }
 
 const TabContext = createContext<TabContextType | undefined>(undefined)
 
 export function TabProvider({ children }: { children: ReactNode }) {
   const [tabs, setTabs] = useState<Tab[]>([])
-  const [activeTabId, setActiveTabId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<Tab | undefined>()
 
   const addTab = (tab: Tab) => {
     if (!tabs.find((t) => t.id === tab.id)) {
       setTabs([...tabs, tab])
     }
-    setActiveTabId(tab.id)
+    setActiveTab(tab)
   }
 
-  const removeTab = (id: string) => {
+  const removeTabById = (id: string) => {
     const newTabs = tabs.filter((t) => t.id !== id)
     setTabs(newTabs)
-    if (activeTabId === id) {
-      setActiveTabId(newTabs.length > 0 ? newTabs[newTabs.length - 1].id : null)
+    if (activeTab?.id === id) {
+      setActiveTab(newTabs.length > 0 ? newTabs[newTabs.length - 1] : undefined)
+    }
+  }
+
+  const setActiveTabById = (id: string) => {
+    const tab = tabs.find((t) => t.id === id)
+    if (tab) {
+      setActiveTab(tab)
     }
   }
 
   return (
-    <TabContext.Provider value={{ tabs, activeTabId, addTab, removeTab, setActiveTabId }}>
+    <TabContext.Provider
+      value={{ tabs, activeTab, addTab, removeTabById, setActiveTabById }}
+    >
       {children}
     </TabContext.Provider>
   )

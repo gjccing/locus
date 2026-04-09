@@ -15,12 +15,14 @@ import {
   fetchRepository,
   pushRepository,
   fetchAllBranches,
+  fetchAllTags,
   checkoutBranch,
 } from "@/lib/git-service"
 
 interface RepoContextType {
   loading: boolean
   branches: string[]
+  tags: string[]
   error: string | null
   addBranch: (name: string, object?: string) => Promise<void>
   switchBranch: (name: string) => Promise<void>
@@ -38,6 +40,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [branches, setBranches] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>([])
   const [token, setToken] = useState<string | null>(null)
   useEffect(() => {
     ;(async () => {
@@ -141,6 +144,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
       }
 
       setBranches(await fetchAllBranches(owner, name))
+      setTags(await fetchAllTags(owner, name))
     } catch (err: unknown) {
       console.error(err)
       setError(
@@ -160,6 +164,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
       value={{
         loading,
         branches,
+        tags,
         error,
         addBranch,
         switchBranch,

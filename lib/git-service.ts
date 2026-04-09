@@ -63,6 +63,12 @@ export async function fetchAllBranches(owner: string, repo: string) {
   return branches
 }
 
+export async function fetchAllTags(owner: string, repo: string) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  return await git.listTags({ fs, dir })
+}
+
 export async function getCurrentBranch(owner: string, repo: string) {
   const fs = getFS()
   const dir = `/${owner}/${repo}`

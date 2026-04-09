@@ -6,6 +6,7 @@ import {
   DownloadIcon,
   SyncIcon,
   GitBranchIcon,
+  TagIcon,
 } from "@primer/octicons-react"
 import { useRepo } from "@/components/repo-context"
 import { ButtonGroup } from "@/components/ui/button-group"
@@ -22,7 +23,7 @@ import { useMemo } from "react"
 import { useTabs } from "./tab-context"
 
 export function Explorer({ className }: { className?: string }) {
-  const { branches, loading, fetchRepo } = useRepo()
+  const { branches, tags, loading, fetchRepo } = useRepo()
   const { addTab } = useTabs()
 
   const treeData = useMemo<TreeDataItem[]>(() => {
@@ -39,8 +40,20 @@ export function Explorer({ className }: { className?: string }) {
           }
         }),
       },
+      {
+        id: "tags",
+        name: "Tags",
+        icon: TagIcon,
+        children: tags.map((tag) => {
+          const data = { id: tag, name: tag }
+          return {
+            ...data,
+            onClick: () => addTab(data),
+          }
+        }),
+      },
     ]
-  }, [branches, addTab])
+  }, [branches, tags, addTab])
 
   return (
     <Sidebar className={className}>

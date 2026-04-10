@@ -5,176 +5,174 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback,
+  useRef,
+  useMemo,
 } from "react"
 import { useParams } from "next/navigation"
+import type { Session } from "next-auth"
 import { getSession } from "next-auth/react"
 import {
   hasCloned,
-  cloneRepository,
-  fetchRepository,
-  pushRepository,
-  fetchAllBranches,
-  fetchAllTags,
-  checkoutBranch,
+  clone,
+  fetch,
+  listBranches,
+  listTags,
+  isExistInRef,
+  syncWithOrigin,
+  checkoutOrphanBranch,
+  cleanWorkspace,
+  writeFile,
+  commit,
+  push,
 } from "@/lib/git-service"
+import { toast } from "sonner"
+
+const CHAT_METADATA_PATH = ".agents/chats/meta.json"
 
 interface RepoContextType {
   loading: boolean
-  branches: string[]
+  branches: { name: string; hasChatted: boolean; hasSynced: boolean }[]
   tags: string[]
-  error: string | null
-  addBranch: (name: string, object?: string) => Promise<void>
-  switchBranch: (name: string) => Promise<void>
-  fetchRepo: () => Promise<void>
-  pushRepo: () => Promise<void>
+  initialize: () => Promise<void>
+  addOrphanBranch: (name: string) => Promise<void>
 }
 
 const RepoContext = createContext<RepoContextType | undefined>(undefined)
 
 export function RepoProvider({ children }: { children: React.ReactNode }) {
-  const params = useParams()
-  const owner = params.owner as string
-  const name = params.name as string
-
+  const repo = useParams() as { owner: string; repo: string }
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [branches, setBranches] = useState<string[]>([])
+  const [branches, setBranches] = useState<RepoContextType["branches"]>([])
   const [tags, setTags] = useState<string[]>([])
-  const [token, setToken] = useState<string | null>(null)
-  useEffect(() => {
-    ;(async () => {
-      setLoading(true)
-      const session = await getSession()
-      setToken(session?.accessToken as string)
-      if (!session?.accessToken) {
-        setError("Not authenticated or missing access token")
-        setLoading(false)
-        return
+  const sessionRef = useRef<(Session & { accessToken: string }) | null>(null)
+
+  const value = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function decorator<T extends (...args: any[]) => any>(
+      needSession: boolean,
+      toastErrorMessage: string,
+      fn: T
+    ) {
+      return async (
+        ...args: Parameters<T>
+      ): Promise<Awaited<ReturnType<T>> | undefined> => {
+        try {
+          if (needSession && !sessionRef.current) {
+            if (loading) {
+              toast.loading("Loading session...", { position: "bottom-right" })
+            } else {
+              toast.error("Not authenticated or missing access token", {
+                position: "bottom-right",
+              })
+            }
+            return
+          }
+          setLoading(true)
+          return await fn(...args)
+        } catch (err: unknown) {
+          console.error(err)
+          toast.error(toastErrorMessage, { position: "bottom-right" })
+        } finally {
+          setLoading(false)
+        }
       }
-    })()
+    }
+
+    async function buildBranches() {
+      return await Promise.all(
+        (await listBranches(repo)).map(async (name) => ({
+          name,
+          hasChatted: await isExistInRef({
+            ...repo,
+            ref: `refs/heads/${name}`,
+            target: CHAT_METADATA_PATH,
+          }),
+          hasSynced: true,
+        }))
+      )
+    }
+
+    const value = {
+      loading,
+      branches,
+      tags,
+      initialize: decorator(
+        false,
+        "Failed to initialize repository",
+        async () => {
+          const session = await getSession()
+          if (session?.accessToken) {
+            sessionRef.current = {
+              ...session,
+              accessToken: session.accessToken,
+            }
+          } else {
+            throw new Error("Not authenticated or missing access token")
+          }
+
+          if (await hasCloned(repo)) {
+            await fetch({
+              ...repo,
+              accessToken: sessionRef.current!.accessToken,
+            })
+          } else {
+            await clone({
+              ...repo,
+              accessToken: sessionRef.current!.accessToken,
+            })
+          }
+
+          await syncWithOrigin(repo)
+          const [branches, tags] = await Promise.all([
+            buildBranches(),
+            listTags(repo),
+          ])
+          setBranches(branches)
+          setTags(tags)
+        }
+      ),
+      addOrphanBranch: decorator(
+        true,
+        "Failed to add an orphan branch",
+        async (name: string) => {
+          await checkoutOrphanBranch({ ...repo, branch: name })
+          await cleanWorkspace(repo)
+          await writeFile({
+            ...repo,
+            filepath: CHAT_METADATA_PATH,
+            content: JSON.stringify({
+              name,
+              description: "",
+              createTime: Date.now(),
+              updateTime: Date.now(),
+            }),
+          })
+          await commit({
+            ...repo,
+            message: "Initial chat",
+            author: {
+              name: sessionRef.current!.user.name!,
+              email: sessionRef.current!.user.email!,
+            },
+            filepath: CHAT_METADATA_PATH,
+          })
+          await push({
+            ...repo,
+            accessToken: sessionRef.current!.accessToken,
+          })
+          setBranches(await buildBranches())
+        }
+      ),
+    }
+    return value
+  }, [repo, loading, branches, tags])
+
+  useEffect(() => {
+    value.initialize()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const addBranch = useCallback(async () => {
-    if (!owner || !name || !token) return
-
-    try {
-      setLoading(true)
-      // add Orphan Branch
-    } catch (err: unknown) {
-      console.error(err)
-      setError(err instanceof Error ? err.message : "Failed to add branch")
-    } finally {
-      setLoading(false)
-    }
-  }, [owner, name, token])
-
-  const switchBranch = useCallback(
-    async (branch: string) => {
-      if (!owner || !name) return
-
-      try {
-        setLoading(true)
-        await checkoutBranch(owner, name, branch)
-      } catch (err: unknown) {
-        console.error(err)
-        setError(err instanceof Error ? err.message : "Failed to switch branch")
-      } finally {
-        setLoading(false)
-      }
-    },
-    [owner, name]
-  )
-
-  const fetchRepo = useCallback(async () => {
-    if (!owner || !name || !token) return
-
-    try {
-      setLoading(true)
-      await fetchRepository(owner, name, token)
-    } catch (err: unknown) {
-      console.error(err)
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch repository"
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [owner, name, token])
-
-  const pushRepo = useCallback(async () => {
-    if (!owner || !name || !token) return
-
-    try {
-      setLoading(true)
-      await pushRepository(owner, name, token)
-    } catch (err: unknown) {
-      console.error(err)
-      setError(err instanceof Error ? err.message : "Failed to push repository")
-    } finally {
-      setLoading(false)
-    }
-  }, [owner, name, token])
-
-  const cloneRepo = useCallback(async () => {
-    if (!owner || !name || !token) return
-
-    try {
-      setLoading(true)
-      await cloneRepository(owner, name, token)
-    } catch (err: unknown) {
-      console.error(err)
-      setError(
-        err instanceof Error ? err.message : "Failed to clone repository"
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [owner, name, token])
-
-  const initRepo = useCallback(async () => {
-    if (!owner || !name) return
-
-    try {
-      setLoading(true)
-      if (await hasCloned(owner, name)) {
-        await fetchRepo()
-      } else {
-        await cloneRepo()
-      }
-
-      setBranches(await fetchAllBranches(owner, name))
-      setTags(await fetchAllTags(owner, name))
-    } catch (err: unknown) {
-      console.error(err)
-      setError(
-        err instanceof Error ? err.message : "Failed to initialize repository"
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [owner, name, cloneRepo, fetchRepo])
-
-  useEffect(() => {
-    initRepo()
-  }, [initRepo])
-
-  return (
-    <RepoContext.Provider
-      value={{
-        loading,
-        branches,
-        tags,
-        error,
-        addBranch,
-        switchBranch,
-        fetchRepo,
-        pushRepo,
-      }}
-    >
-      {children}
-    </RepoContext.Provider>
-  )
+  return <RepoContext.Provider value={value}>{children}</RepoContext.Provider>
 }
 
 export function useRepo() {

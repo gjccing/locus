@@ -3,23 +3,25 @@ import GitHub from "next-auth/providers/github"
 
 declare module "next-auth" {
   interface Session {
-    accessToken?: string;
+    accessToken?: string
     user: {
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      login?: string;
-      id?: string;
-    };
+      name?: string | null
+      email?: string | null
+      image?: string | null
+      login?: string
+      id?: string
+    }
   }
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     GitHub({
+      issuer: "https://github.com/login/oauth",
       authorization: {
         params: { scope: "read:user user:email repo" },
       },
+      checks: ["state"],
     }),
   ],
   callbacks: {

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 import { APIKeyProvider } from "@/components/api-key-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
+import { Toaster } from "@/components/ui/sonner"
+
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
@@ -38,6 +40,7 @@ export default function RootLayout({
               <main className="min-h-[calc(100dvh-4rem)] w-dvw transition-all">
                 {children}
               </main>
+              <Toaster />
             </TooltipProvider>
           </APIKeyProvider>
         </ThemeProvider>

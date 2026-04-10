@@ -8,23 +8,18 @@ import { useRepo } from "@/components/repo-context"
 
 export default function RepositoryDetailPage() {
   const { tabs, activeTab, removeTabById, setActiveTabById } = useTabs()
-  const { loading, error } = useRepo()
+  const { loading } = useRepo()
 
   if (loading && tabs.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <SyncIcon size={24} className="animate-spin direction-[reverse]" />
+          <SyncIcon
+            size={24}
+            className="-scale-x-100 animate-spin direction-[reverse]"
+          />
           <p className="font-medium text-zinc-500">Cloning repository...</p>
         </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center p-8 text-red-500">
-        {error}
       </div>
     )
   }

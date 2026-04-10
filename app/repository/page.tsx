@@ -109,7 +109,7 @@ export default function Page() {
           >
             {(isFetchingMore || loading) && (
               <Muted className="flex animate-in items-center gap-2 duration-500 fade-in">
-                <SyncIcon className="animate-spin direction-[reverse]" />
+                <SyncIcon className="-scale-x-100 animate-spin direction-[reverse]" />
                 Loading more...
               </Muted>
             )}

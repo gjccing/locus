@@ -278,7 +278,7 @@ export function APIKeyCard({
                     >
                       {isTesting ? (
                         <>
-                          <SyncIcon className="animate-spin direction-[reverse]" />
+                          <SyncIcon className="-scale-x-100 animate-spin direction-[reverse]" />
                           Testing...
                         </>
                       ) : (

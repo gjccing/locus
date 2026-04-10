@@ -42,7 +42,9 @@ export function SearchBar({
         onChange={handleChange}
       />
       <InputGroupAddon align="inline-end">
-        {loading && <SyncIcon className="animate-spin direction-[reverse]" />}
+        {loading && (
+          <SyncIcon className="-scale-x-100 animate-spin direction-[reverse]" />
+        )}
         {!loading && value && `${results} results`}
       </InputGroupAddon>
     </InputGroup>

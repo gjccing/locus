@@ -11,7 +11,7 @@ const treeVariants = cva(
 )
 
 const selectedTreeVariants = cva(
-  "text-accent-foreground before:bg-accent/70 before:opacity-100"
+  "bg-muted-foreground/20 text-accent-foreground before:bg-accent/70 before:opacity-100"
 )
 
 const dragOverVariants = cva(
@@ -455,7 +455,7 @@ const TreeLeaf = React.forwardRef<
       >
         {renderItem ? (
           <>
-            <div className="mr-1 h-4 w-4 shrink-0" />
+            {/* <div className="mr-1 h-4 w-4 shrink-0" /> */}
             {renderItem({
               item,
               level,
@@ -571,4 +571,6 @@ export {
   TreeLeaf,
   TreeNode,
   TreeItem,
+  TreeIcon,
+  TreeActions,
 }

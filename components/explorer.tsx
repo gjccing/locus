@@ -2,7 +2,7 @@
 
 import { Sidebar, SidebarHeader } from "@/components/ui/sidebar"
 import {
-  ComposeIcon,
+  CommentAiIcon,
   DownloadIcon,
   SyncIcon,
   CommentDiscussionIcon,
@@ -27,81 +27,176 @@ import {
   TreeActions,
 } from "@/components/tree-view"
 import { useTabs } from "./tab-context"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { PencilIcon, TrashIcon } from "@primer/octicons-react"
 
 export function Explorer({ className }: { className?: string }) {
-  const { branches, tags, loading, addOrphanBranch } = useRepo()
+  const {
+    branches,
+    tags,
+    loading,
+    addOrphanBranch,
+    fetch,
+    renameBranch,
+    deleteBranch,
+    renameTag,
+    deleteTag,
+  } = useRepo()
   const { addTab } = useTabs()
   const [isAddingBranch, setIsAddingBranch] = useState(false)
   const [newBranchName, setNewBranchName] = useState("")
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState("")
 
   const handleAddBranch = useCallback(async () => {
-    if (newBranchName.trim()) {
-      await addOrphanBranch(newBranchName.trim())
+    const name = newBranchName.trim()
+    if (name) {
+      await addOrphanBranch(name)
       setNewBranchName("")
       setIsAddingBranch(false)
     }
   }, [newBranchName, addOrphanBranch])
 
+  const handleRename = useCallback(async () => {
+    const name = renameValue.trim()
+    if (!name || !renamingId) return
+
+    if (renamingId.startsWith("branch/")) {
+      const oldName = renamingId.replace("branch/", "")
+      await renameBranch(oldName, name)
+    } else if (renamingId.startsWith("tag/")) {
+      const oldName = renamingId.replace("tag/", "")
+      await renameTag(oldName, name)
+    }
+    setRenamingId(null)
+    setRenameValue("")
+  }, [renameValue, renamingId, renameBranch, renameTag])
+
+  const handleDelete = useCallback(
+    async (item: TreeDataItem) => {
+      if (item.id.startsWith("branch/")) {
+        const name = item.id.replace("branch/", "")
+        await deleteBranch(name)
+      } else if (item.id.startsWith("tag/")) {
+        const name = item.id.replace("tag/", "")
+        await deleteTag(name)
+      }
+    },
+    [deleteBranch, deleteTag]
+  )
+
   const renderItem = useCallback(
     ({ item, isSelected, isOpen }: TreeRenderItemParams) => {
-      if (item.id === "adding-branch") {
+      if (item.id === "adding-branch" || renamingId === item.id) {
+        const isRenaming = renamingId === item.id
+        const value = isRenaming ? renameValue : newBranchName
+        const setValue = isRenaming ? setRenameValue : setNewBranchName
+        const onCancel = () => {
+          if (isRenaming) {
+            setRenamingId(null)
+            setRenameValue("")
+          } else {
+            setIsAddingBranch(false)
+            setNewBranchName("")
+          }
+        }
+        const onConfirm = isRenaming ? handleRename : handleAddBranch
+        const trimmedValue = value.trim()
+        const isExisted = isRenaming
+          ? item.id.startsWith("branch/")
+            ? branches.some(
+                (b) => b.name === trimmedValue && b.name !== item.name
+              )
+            : tags.some((t) => t === trimmedValue && t !== item.name)
+          : branches.some((b) => b.name === trimmedValue)
+
         return (
-          <div className="flex w-full items-center">
+          <form
+            className="flex w-full items-center"
+            onSubmit={(e) => {
+              e.preventDefault()
+              onConfirm()
+            }}
+          >
             <TreeIcon item={item} isSelected={isSelected} isOpen={isOpen} />
             <input
               autoFocus
+              required
               disabled={loading}
+              pattern="^(?![\/.])(?!.*[\/.]{2,})(?!.*@\{)(?!.*[\/.]$)(?!.*\.lock$)[^ ~^:?*\[\x00-\x1F\x7F]+$"
               className={cn(
                 "w-full bg-transparent p-0 text-sm outline-none disabled:opacity-50",
-                newBranchName &&
-                  !/^(?![\/.])(?!.*[\/.]{2,})(?!.*@\{)(?!.*[\/.]$)(?!.*\.lock$)[^ ~^:?*\[\x00-\x1F\x7F]+$/.test(
-                    newBranchName
-                  ) &&
-                  "text-red-500"
+                "[&:not(:placeholder-shown):invalid]:text-red-500",
+                value && isExisted && "text-red-500"
               )}
-              placeholder="Branch name..."
-              value={newBranchName}
-              onChange={(e) => setNewBranchName(e.target.value)}
+              placeholder={isRenaming ? "New name..." : "Branch name..."}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (
-                    /^(?![\/.])(?!.*[\/.]{2,})(?!.*@\{)(?!.*[\/.]$)(?!.*\.lock$)[^ ~^:?*\[\x00-\x1F\x7F]+$/.test(
-                      newBranchName
-                    )
-                  ) {
-                    handleAddBranch()
-                  }
-                }
-                if (e.key === "Escape") {
-                  setIsAddingBranch(false)
-                  setNewBranchName("")
-                }
+                if (e.key === "Escape") onCancel()
               }}
-              onBlur={() => {
-                if (!newBranchName.trim()) {
-                  setIsAddingBranch(false)
-                }
-              }}
+              onBlur={() => onCancel()}
             />
-          </div>
+          </form>
         )
       }
 
       return (
-        <>
-          <TreeIcon item={item} isSelected={isSelected} isOpen={isOpen} />
-          <span className="truncate text-sm">{item.name as string}</span>
-          <TreeActions isSelected={isSelected}>{item.actions}</TreeActions>
-        </>
+        <ContextMenu>
+          <ContextMenuTrigger asChild disabled={!!item.children}>
+            <div className="flex w-full items-center">
+              <TreeIcon item={item} isSelected={isSelected} isOpen={isOpen} />
+              <span className="truncate text-sm">{item.name as string}</span>
+              <TreeActions isSelected={isSelected}>{item.actions}</TreeActions>
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem
+              onClick={(e) => {
+                e.stopPropagation()
+                setRenamingId(item.id)
+                setRenameValue(item.name as string)
+              }}
+            >
+              <PencilIcon className="mr-2 h-4 w-4" />
+              Rename
+            </ContextMenuItem>
+            <ContextMenuItem
+              variant="destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDelete(item)
+              }}
+            >
+              <TrashIcon className="mr-2 h-4 w-4" />
+              Delete
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
       )
     },
-    [newBranchName, handleAddBranch, loading]
+    [
+      newBranchName,
+      handleAddBranch,
+      loading,
+      branches,
+      renamingId,
+      renameValue,
+      handleRename,
+      handleDelete,
+      tags,
+    ]
   )
 
   const treeData = useMemo<TreeDataItem[]>(() => {
     return [
       {
-        id: "chats",
+        id: "branches",
         name: "Chats",
         icon: CommentDiscussionIcon,
         children: [
@@ -114,7 +209,10 @@ export function Explorer({ className }: { className?: string }) {
               ]
             : []),
           ...branches.map((branch) => {
-            const data = { id: branch.name, name: branch.name }
+            const data = {
+              id: `branch/${branch.name}`,
+              name: branch.name,
+            }
             return {
               ...data,
               onClick: () => addTab(data),
@@ -123,11 +221,14 @@ export function Explorer({ className }: { className?: string }) {
         ],
       },
       {
-        id: "bookmarks",
+        id: "tags",
         name: "Bookmarks",
         icon: TagIcon,
         children: tags.map((tag) => {
-          const data = { id: tag, name: tag }
+          const data = {
+            id: `tag/${tag}`,
+            name: tag,
+          }
           return {
             ...data,
             onClick: () => addTab(data),
@@ -152,7 +253,7 @@ export function Explorer({ className }: { className?: string }) {
                   setIsAddingBranch(true)
                 }}
               >
-                <ComposeIcon />
+                <CommentAiIcon />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">New Chat</TooltipContent>
@@ -163,7 +264,7 @@ export function Explorer({ className }: { className?: string }) {
                 variant="ghost"
                 size="xs"
                 disabled={loading}
-                // onClick={fetchRepo}
+                onClick={fetch}
               >
                 <DownloadIcon />
               </Button>

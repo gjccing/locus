@@ -158,7 +158,7 @@ export async function isExistInRef({
   }
 }
 
-export async function syncWithOrigin({
+export async function overrideByOriginBranches({
   owner,
   repo,
 }: {
@@ -343,20 +343,116 @@ export async function push({
   owner,
   repo,
   accessToken,
+  ref,
+  remoteRef,
 }: {
   owner: string
   repo: string
   accessToken: string
+  ref?: string
+  remoteRef?: string
 }) {
   const fs = getFS()
   const dir = `/${owner}/${repo}`
   const url = `https://github.com/${owner}/${repo}.git`
-  await git.push({
+  return await git.push({
     fs,
     http,
     dir,
     url,
+    ref,
+    remoteRef,
     corsProxy: "https://cors.isomorphic-git.org",
     headers: { Authorization: `Basic ${btoa(accessToken)}` },
   })
+}
+
+export async function deleteBranch({
+  owner,
+  repo,
+  branch,
+}: {
+  owner: string
+  repo: string
+  branch: string
+}) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  await git.deleteBranch({ fs, dir, ref: branch })
+}
+
+export async function deleteRemoteRef({
+  owner,
+  repo,
+  accessToken,
+  ref,
+}: {
+  owner: string
+  repo: string
+  accessToken: string
+  ref: string
+}) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  const url = `https://github.com/${owner}/${repo}.git`
+  return await git.push({
+    fs,
+    http,
+    dir,
+    url,
+    ref,
+    remoteRef: ref,
+    corsProxy: "https://cors.isomorphic-git.org",
+    headers: { Authorization: `Basic ${btoa(accessToken)}` },
+    force: true,
+    delete: true,
+  })
+}
+
+export async function renameBranch({
+  owner,
+  repo,
+  oldName,
+  newName,
+}: {
+  owner: string
+  repo: string
+  oldName: string
+  newName: string
+}) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  await git.renameBranch({ fs, dir, oldref: oldName, ref: newName })
+}
+
+export async function deleteTag({
+  owner,
+  repo,
+  tag,
+}: {
+  owner: string
+  repo: string
+  tag: string
+}) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  await git.deleteTag({ fs, dir, ref: tag })
+}
+
+export async function renameTag({
+  owner,
+  repo,
+  oldName,
+  newName,
+}: {
+  owner: string
+  repo: string
+  oldName: string
+  newName: string
+}) {
+  const fs = getFS()
+  const dir = `/${owner}/${repo}`
+  const sha = await git.resolveRef({ fs, dir, ref: oldName })
+  await git.writeRef({ fs, dir, ref: `refs/tags/${newName}`, value: sha })
+  await git.deleteTag({ fs, dir, ref: oldName })
 }

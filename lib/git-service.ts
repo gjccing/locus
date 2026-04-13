@@ -6,7 +6,7 @@ let fs: FS | undefined = undefined
 
 export function getFS() {
   if (!fs) {
-    fs = new FS("context-editor-fs")
+    fs = new FS("locus-fs")
   }
   return fs
 }
@@ -170,9 +170,9 @@ export async function overrideByOriginBranches({
   const gitDir = `${dir}/.git`
   const headsDir = `${gitDir}/refs/heads`
 
-  const [remoteBranches, localBranches] = await Promise.all([
-    git.listBranches({ fs, dir, remote: "origin" }),
+  const [localBranches, remoteBranches] = await Promise.all([
     git.listBranches({ fs, dir }),
+    git.listBranches({ fs, dir, remote: "origin" }),
   ])
 
   await Promise.all(

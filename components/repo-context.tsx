@@ -32,7 +32,7 @@ import {
 } from "@/lib/git-service"
 import { toast } from "sonner"
 
-const CHAT_METADATA_PATH = ".agents/chats/meta.json"
+const CHAT_METADATA_PATH = "./locus/chat.json"
 
 interface RepoContextType {
   loading: boolean

@@ -31,14 +31,13 @@ export default function RepositoryDetailPage() {
       onValueChange={setActiveTabById}
     >
       <div
-        className="w-full overflow-x-auto overflow-y-hidden border-b bg-white pb-1"
+        className="h-[41px] w-full overflow-x-auto overflow-y-hidden border-b bg-white pb-1 pl-10"
         style={{ scrollbarWidth: "thin" }}
       >
         <TabsList
           variant="line"
-          className="h-12 justify-start gap-2 bg-transparent px-2"
+          className="justify-start gap-2 bg-transparent px-2"
         >
-          <SidebarTrigger />
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}

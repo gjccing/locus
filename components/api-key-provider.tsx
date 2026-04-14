@@ -1,11 +1,25 @@
 "use client"
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react"
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react"
 import { getSession } from "next-auth/react"
 
 export type ConfigStatus = "active" | "error" | "idle"
 
-export type AIProvider = "OpenAI" | "Anthropic" | "Gemini" | "Google Vertex AI" | "Mistral" | "Amazon Bedrock" | "Cohere" | "Groq"
+export type AIProvider =
+  | "OpenAI"
+  | "Anthropic"
+  | "Gemini"
+  | "Google Vertex AI"
+  | "Mistral"
+  | "Amazon Bedrock"
+  | "Cohere"
+  | "Groq"
 
 export interface APIKeyInfo {
   id: string
@@ -27,10 +41,13 @@ const APIKeyContext = createContext<APIKeyContextType | undefined>(undefined)
 // Crypto helpers using Web Crypto API
 async function deriveKey(secret: string, salt: Uint8Array) {
   const enc = new TextEncoder()
-  const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(secret), { name: "PBKDF2" }, false, [
-    "deriveBits",
-    "deriveKey",
-  ])
+  const keyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits", "deriveKey"]
+  )
   return window.crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
@@ -51,9 +68,15 @@ async function encryptData(data: string, secret: string) {
   const iv = window.crypto.getRandomValues(new Uint8Array(12))
   const key = await deriveKey(secret, salt)
 
-  const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(data))
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    enc.encode(data)
+  )
 
-  const combinedBytes = new Uint8Array(salt.length + iv.length + encrypted.byteLength)
+  const combinedBytes = new Uint8Array(
+    salt.length + iv.length + encrypted.byteLength
+  )
   combinedBytes.set(salt, 0)
   combinedBytes.set(iv, salt.length)
   combinedBytes.set(new Uint8Array(encrypted), salt.length + iv.length)
@@ -74,7 +97,11 @@ async function decryptData(encodedData: string, secret: string) {
     const data = combinedBytes.slice(28)
 
     const key = await deriveKey(secret, salt)
-    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data)
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      data
+    )
 
     return new TextDecoder().decode(decrypted)
   } catch (e) {
@@ -153,16 +180,23 @@ export function APIKeyProvider({ children }: { children: React.ReactNode }) {
     setApiKeys((prev) => [...prev, apiKey])
   }, [])
 
-  const updateAPIKey = useCallback((id: string, updates: Partial<APIKeyInfo>) => {
-    setApiKeys((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)))
-  }, [])
+  const updateAPIKey = useCallback(
+    (id: string, updates: Partial<APIKeyInfo>) => {
+      setApiKeys((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+      )
+    },
+    []
+  )
 
   const deleteAPIKey = useCallback((id: string) => {
     setApiKeys((prev) => prev.filter((item) => item.id !== id))
   }, [])
 
   return (
-    <APIKeyContext.Provider value={{ apiKeys, addAPIKey, updateAPIKey, deleteAPIKey }}>
+    <APIKeyContext.Provider
+      value={{ apiKeys, addAPIKey, updateAPIKey, deleteAPIKey }}
+    >
       {children}
     </APIKeyContext.Provider>
   )

@@ -110,6 +110,26 @@ export function APIKeyCard({
     onUpdate?.({ name: currentName, provider: val, token: currentToken })
   }
 
+  const autoSetProvider = (token: string) => {
+    if (currentProvider) return
+
+    if (token.startsWith("sk-")) {
+      setCurrentProvider("OpenAI")
+    } else if (token.startsWith("AIzaSy")) {
+      setCurrentProvider("Gemini")
+    } else if (token.startsWith("sk-ant-")) {
+      setCurrentProvider("Anthropic")
+    } else if (token.startsWith("mistral-")) {
+      setCurrentProvider("Mistral")
+    } else if (token.startsWith("AKIA")) {
+      setCurrentProvider("Amazon Bedrock")
+    } else if (token.startsWith("co-")) {
+      setCurrentProvider("Cohere")
+    } else if (token.startsWith("gsk_")) {
+      setCurrentProvider("Groq")
+    }
+  }
+
   return (
     <Card
       className={cn(
@@ -154,7 +174,7 @@ export function APIKeyCard({
                 Provider <span className="ml-0.5 text-destructive">*</span>
               </FieldLabel>
               <Select
-                defaultValue={provider}
+                value={currentProvider}
                 onValueChange={handleProviderChange}
               >
                 <SelectTrigger
@@ -193,7 +213,10 @@ export function APIKeyCard({
               type="text"
               defaultValue={token}
               onChange={(e) => setCurrentToken(e.target.value)}
-              onBlur={handleBlur}
+              onBlur={(e) => {
+                autoSetProvider(e.target.value)
+                handleBlur()
+              }}
               placeholder={
                 currentProvider
                   ? tokenPlaceholders[currentProvider]

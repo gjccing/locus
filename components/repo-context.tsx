@@ -32,7 +32,7 @@ import {
 } from "@/lib/git-service"
 import { toast } from "sonner"
 
-const CHAT_METADATA_PATH = "./locus/chat.json"
+const CONTEXT_PATH = "context.json"
 
 interface RepoContextType {
   loading: boolean
@@ -63,36 +63,35 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
       toastErrorMessage: string,
       fn: T
     ) {
-      return async (
-        ...args: Parameters<T>
-      ): Promise<Awaited<ReturnType<T>> | undefined> => {
-        const result = promiseChainRef.current.then(() => {
-          if (needSession && !sessionRef.current) {
-            if (loading) {
-              toast.loading("Loading session...", {
-                position: "bottom-right",
-              })
-            } else {
-              toast.error("Not authenticated or missing access token", {
-                position: "bottom-right",
-              })
+      return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+        promiseChainRef.current = promiseChainRef.current.then(async () => {
+          try {
+            if (needSession && !sessionRef.current) {
+              if (loading) {
+                toast.loading("Loading session...", {
+                  position: "bottom-right",
+                })
+              } else {
+                toast.error("Not authenticated or missing access token", {
+                  position: "bottom-right",
+                })
+              }
+              return
             }
-            return
-          }
-          setLoading(true)
-          return fn(...args)
-        })
-        promiseChainRef.current = result
-          .catch((err: unknown) => {
+            setLoading(true)
+            await fn(...args)
+          } catch (err) {
             console.error(err)
             if (typeof err === "string") {
               toast.error(err, { position: "bottom-right" })
             } else {
               toast.error(toastErrorMessage, { position: "bottom-right" })
             }
-          })
-          .finally(() => setLoading(false))
-        return result
+          } finally {
+            setLoading(false)
+          }
+        })
+        return promiseChainRef.current as Awaited<ReturnType<T>>
       }
     }
 
@@ -105,7 +104,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
               hasChatted: await isExistInRef({
                 ...repo,
                 ref: `refs/heads/${name}`,
-                target: CHAT_METADATA_PATH,
+                target: CONTEXT_PATH,
               }),
               hasSynced: true,
             }))
@@ -163,7 +162,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
           await cleanWorkspace(repo)
           await writeFile({
             ...repo,
-            filepath: CHAT_METADATA_PATH,
+            filepath: CONTEXT_PATH,
             content: JSON.stringify({
               name,
               description: "",
@@ -178,7 +177,7 @@ export function RepoProvider({ children }: { children: React.ReactNode }) {
               name: sessionRef.current!.user.name!,
               email: sessionRef.current!.user.email!,
             },
-            filepath: CHAT_METADATA_PATH,
+            filepath: CONTEXT_PATH,
           })
           await push({
             ...repo,

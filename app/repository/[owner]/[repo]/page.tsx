@@ -2,7 +2,6 @@
 
 import { useTabs } from "@/components/tab-context"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { XIcon, SyncIcon } from "@primer/octicons-react"
 import { useRepo } from "@/components/repo-context"
 
@@ -31,7 +30,7 @@ export default function RepositoryDetailPage() {
       onValueChange={setActiveTabById}
     >
       <div
-        className="h-[41px] w-full overflow-x-auto overflow-y-hidden border-b bg-white pb-1 pl-10"
+        className="h-10.25 w-full overflow-x-auto overflow-y-hidden border-b bg-white pb-1 pl-10"
         style={{ scrollbarWidth: "thin" }}
       >
         <TabsList
@@ -59,7 +58,7 @@ export default function RepositoryDetailPage() {
           ))}
         </TabsList>
       </div>
-      <div className="flex-1 overflow-hidden p-4">
+      <div className="flex-1 overflow-auto">
         {tabs.length === 0 ? (
           <div className="flex h-full items-center justify-center text-zinc-400">
             Select a file from the explorer to view its content
@@ -69,9 +68,10 @@ export default function RepositoryDetailPage() {
             <TabsContent
               key={tab.id}
               value={tab.id}
-              className="m-0 h-full data-[state=inactive]:hidden"
+              className="h-full data-[state=inactive]:hidden"
             >
-              {/* TODO: Just show the branch name */}
+              {/* add the chat here use api key from APIKeyProvider */}
+              {/* if it is possible, just use the api on the client side, it is the byok product */}
             </TabsContent>
           ))
         )}

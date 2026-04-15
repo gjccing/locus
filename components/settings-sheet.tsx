@@ -20,20 +20,18 @@ interface SettingsSheetProps {
 }
 
 export function SettingsSheet({ user }: SettingsSheetProps) {
-  const initials = user?.name 
-    ? user.name.slice(0, 2).toUpperCase() 
-    : "US"
-    
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="rounded-full cursor-pointer hover:opacity-80 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+        <button className="cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
           <Avatar>
             <AvatarImage
               src={user.image ?? undefined}
               alt={user.name ?? "User"}
             />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback>
+              {user.name?.slice(0, 2).toUpperCase() ?? "US"}
+            </AvatarFallback>
           </Avatar>
         </button>
       </SheetTrigger>
@@ -49,7 +47,11 @@ export function SettingsSheet({ user }: SettingsSheetProps) {
               await signOut({ redirectTo: "/" })
             }}
           >
-            <Button type="submit" variant="outline" className="w-full text-destructive">
+            <Button
+              type="submit"
+              variant="outline"
+              className="w-full text-destructive"
+            >
               <SignInIcon size={16} />
               Sign Out
             </Button>

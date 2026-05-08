@@ -3,13 +3,16 @@
 import { APIKeyCard } from "@/components/api-key-card"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from "@primer/octicons-react"
-import { useAPIKeys } from "@/components/api-key-provider"
 import { useEffect, useRef } from "react"
+import { useAppStore } from "@/stores/app-store"
 
 import { Small } from "@/components/ui/typography"
 
 export function ApiKeyList() {
-  const { apiKeys, addAPIKey, updateAPIKey, deleteAPIKey } = useAPIKeys()
+  const apiKeys = useAppStore((s) => s.apiKeys)
+  const addAPIKey = useAppStore((s) => s.apiKeysAdd)
+  const updateAPIKey = useAppStore((s) => s.apiKeysUpdate)
+  const deleteAPIKey = useAppStore((s) => s.apiKeysDelete)
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevKeysLength = useRef(apiKeys.length)
 
@@ -39,13 +42,15 @@ export function ApiKeyList() {
           key={keyInfo.id}
           className="shrink-0"
           {...keyInfo}
-          onDelete={() => deleteAPIKey(keyInfo.id)}
-          onUpdate={(updates) => updateAPIKey(keyInfo.id, updates)}
+          onDelete={() => void deleteAPIKey(keyInfo.id)}
+          onUpdate={(updates) => void updateAPIKey(keyInfo.id, updates)}
         />
       ))}
       <Button
         variant="secondary"
-        onClick={() => addAPIKey({ id: crypto.randomUUID(), status: "idle" })}
+        onClick={() =>
+          void addAPIKey({ id: crypto.randomUUID(), status: "idle" })
+        }
       >
         <PlusIcon />
         Add New Key

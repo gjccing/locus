@@ -24,7 +24,7 @@ import {
 import { cn } from "@/lib/utils"
 import { PlayIcon, SyncIcon } from "@primer/octicons-react"
 import { testApiKey } from "@/app/actions/api-test"
-import type { APIKeyInfo, AIProvider } from "@/components/api-key-provider"
+import type { APIKeyInfo, AIProvider } from "@/stores/app-store"
 import { InlineCode } from "@/components/ui/typography"
 
 interface APIKeyCardProps extends APIKeyInfo {

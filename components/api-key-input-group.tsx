@@ -70,6 +70,7 @@ export function APIKeyInputGroup({
   const id = useId()
   const [currentProvider, setCurrentProvider] = useState(provider)
   const [currentToken, setCurrentToken] = useState(token)
+  const [isProviderManuallySet, setIsProviderManuallySet] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [isTokenVisible, setIsTokenVisible] = useState(false)
@@ -81,6 +82,19 @@ export function APIKeyInputGroup({
   const isTokenInvalid = isDirty && !currentToken
   const isProviderInvalid = isDirty && !currentProvider
   const isError = status === "error"
+
+  const detectProviderFromToken = (rawToken: string): AIProvider | null => {
+    const t = rawToken.trim()
+    if (!t) return null
+
+    // Order matters: some providers share prefixes.
+    if (/^sk-ant-/.test(t)) return "Anthropic"
+    if (/^sk-(?!ant-)/.test(t)) return "OpenAI"
+    if (/^AIzaSy/.test(t)) return "Gemini"
+    if (/^gsk_/.test(t)) return "Groq"
+
+    return null
+  }
 
   const currentProviderMeta = useMemo(
     () => (currentProvider ? providerMeta[currentProvider] : null),
@@ -112,23 +126,18 @@ export function APIKeyInputGroup({
   }
 
   const handleProviderChange = (val: AIProvider) => {
+    setIsProviderManuallySet(true)
     setCurrentProvider(val)
     setIsDirty(true)
     onUpdate?.({ provider: val, token: currentToken })
   }
 
   const autoSetProvider = (token: string) => {
-    if (currentProvider) return
-
-    if (token.startsWith("sk-")) {
-      setCurrentProvider("OpenAI")
-    } else if (token.startsWith("AIzaSy")) {
-      setCurrentProvider("Gemini")
-    } else if (token.startsWith("sk-ant-")) {
-      setCurrentProvider("Anthropic")
-    } else if (token.startsWith("gsk_")) {
-      setCurrentProvider("Groq")
-    }
+    if (isProviderManuallySet) return
+    const detected = detectProviderFromToken(token)
+    if (!detected) return
+    if (currentProvider === detected) return
+    setCurrentProvider(detected)
   }
 
   return (
@@ -188,7 +197,11 @@ export function APIKeyInputGroup({
           id={`key-${id}-token`}
           type={isTokenVisible ? "text" : "password"}
           value={currentToken ?? ""}
-          onChange={(e) => setCurrentToken(e.target.value)}
+          onChange={(e) => {
+            const next = e.target.value
+            setCurrentToken(next)
+            autoSetProvider(next)
+          }}
           onBlur={(e) => {
             autoSetProvider(e.target.value)
             handleBlur()

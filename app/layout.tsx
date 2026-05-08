@@ -2,10 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Header } from "@/components/header"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { BootstrapStore } from "@/components/bootstrap-store"
 
 import { Toaster } from "@/components/ui/sonner"
 
@@ -34,12 +32,8 @@ export default function RootLayout({
     >
       <body className="h-max w-max">
         <ThemeProvider>
-          <BootstrapStore />
           <TooltipProvider>
-            <Header />
-            <main className="min-h-[calc(100dvh-4rem)] w-dvw transition-all">
-              {children}
-            </main>
+            {children}
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>

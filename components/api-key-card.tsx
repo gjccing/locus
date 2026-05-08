@@ -34,13 +34,13 @@ interface APIKeyCardProps extends APIKeyInfo {
 }
 
 const statusStyles = {
-  active: "bg-emerald-500 shadow-sm shadow-emerald-500",
+  passed: "bg-emerald-500 shadow-sm shadow-emerald-500",
   error: "bg-destructive shadow-sm shadow-destructive",
   idle: "bg-muted-foreground",
 }
 
 const statusTitles = {
-  active: "Active",
+  passed: "Passed",
   error: "Error",
   idle: "Idle",
 }
@@ -49,16 +49,11 @@ const tokenPlaceholders: Record<AIProvider, string> = {
   OpenAI: "sk-...",
   Anthropic: "sk-ant-...",
   Gemini: "AIzaSy...",
-  "Google Vertex AI": "ya29...",
-  Mistral: "mistral-...",
-  "Amazon Bedrock": "AKIA...",
-  Cohere: "co-...",
   Groq: "gsk_...",
 }
 
 export function APIKeyCard({
   className,
-  name,
   provider,
   token,
   status,
@@ -66,7 +61,6 @@ export function APIKeyCard({
   onUpdate,
 }: APIKeyCardProps) {
   const id = useId()
-  const [currentName, setCurrentName] = useState(name)
   const [currentProvider, setCurrentProvider] = useState(provider)
   const [currentToken, setCurrentToken] = useState(token)
   const [isDirty, setIsDirty] = useState(false)
@@ -82,7 +76,6 @@ export function APIKeyCard({
   const handleBlur = () => {
     setIsDirty(true)
     onUpdate?.({
-      name: currentName,
       provider: currentProvider,
       token: currentToken,
     })
@@ -97,7 +90,7 @@ export function APIKeyCard({
     setIsTesting(false)
     if (result.success) {
       setTestResult({ success: true, message: result.text || "Success!" })
-      onUpdate?.({ status: "active" })
+      onUpdate?.({ status: "passed" })
     } else {
       setTestResult({ success: false, message: result.error || "Failed." })
       onUpdate?.({ status: "error" })
@@ -107,7 +100,7 @@ export function APIKeyCard({
   const handleProviderChange = (val: AIProvider) => {
     setCurrentProvider(val)
     setIsDirty(true)
-    onUpdate?.({ name: currentName, provider: val, token: currentToken })
+    onUpdate?.({ provider: val, token: currentToken })
   }
 
   const autoSetProvider = (token: string) => {
@@ -119,12 +112,6 @@ export function APIKeyCard({
       setCurrentProvider("Gemini")
     } else if (token.startsWith("sk-ant-")) {
       setCurrentProvider("Anthropic")
-    } else if (token.startsWith("mistral-")) {
-      setCurrentProvider("Mistral")
-    } else if (token.startsWith("AKIA")) {
-      setCurrentProvider("Amazon Bedrock")
-    } else if (token.startsWith("co-")) {
-      setCurrentProvider("Cohere")
     } else if (token.startsWith("gsk_")) {
       setCurrentProvider("Groq")
     }
@@ -149,25 +136,6 @@ export function APIKeyCard({
           <div className="grid grid-cols-2 gap-3">
             <Field>
               <FieldLabel
-                htmlFor={`key-${id}-name`}
-                className="flex items-center font-bold tracking-wider text-muted-foreground uppercase"
-              >
-                Name{" "}
-                <span className="ml-1.5 text-[10px] font-normal text-muted-foreground/50 normal-case">
-                  (optional)
-                </span>
-              </FieldLabel>
-              <Input
-                id={`key-${id}-name`}
-                type="text"
-                defaultValue={name}
-                onChange={(e) => setCurrentName(e.target.value)}
-                onBlur={handleBlur}
-                placeholder="Name"
-              />
-            </Field>
-            <Field>
-              <FieldLabel
                 htmlFor={`key-${id}-provider`}
                 className="font-bold tracking-wider text-muted-foreground uppercase"
               >
@@ -190,16 +158,11 @@ export function APIKeyCard({
                   <SelectItem value="OpenAI">OpenAI</SelectItem>
                   <SelectItem value="Anthropic">Anthropic</SelectItem>
                   <SelectItem value="Gemini">Gemini</SelectItem>
-                  <SelectItem value="Google Vertex AI">
-                    Google Vertex AI
-                  </SelectItem>
-                  <SelectItem value="Mistral">Mistral</SelectItem>
-                  <SelectItem value="Amazon Bedrock">Amazon Bedrock</SelectItem>
-                  <SelectItem value="Cohere">Cohere</SelectItem>
                   <SelectItem value="Groq">Groq</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
+            <div />
           </div>
           <Field>
             <FieldLabel

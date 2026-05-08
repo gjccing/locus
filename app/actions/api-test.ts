@@ -5,11 +5,7 @@ import { generateText } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { createAnthropic } from "@ai-sdk/anthropic"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { createVertex } from "@ai-sdk/google-vertex"
-import { createMistral } from "@ai-sdk/mistral"
-import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock"
-import { createCohere } from "@ai-sdk/cohere"
-import { createXai } from '@ai-sdk/xai';
+import { createGroq } from "@ai-sdk/groq"
 
 export async function testApiKey(providerName: string, configToken: string) {
   try {
@@ -24,20 +20,8 @@ export async function testApiKey(providerName: string, configToken: string) {
       case "Gemini":
         aiModel = createGoogleGenerativeAI({ apiKey: configToken })("gemini-flash-lite-latest");
         break;
-      case "Google Vertex AI":
-        aiModel = createVertex({ apiKey: configToken })("gemini-1.5-flash");
-        break;
-      case "Mistral":
-        aiModel = createMistral({ apiKey: configToken })("ministral-3b-latest");
-        break;
-      case "Amazon Bedrock":
-        aiModel = createAmazonBedrock({ apiKey: configToken })("us.meta.llama3-2-1b-instruct-v1:0");
-        break;
-      case "Cohere":
-        aiModel = createCohere({ apiKey: configToken })("command-r7b-12-2024");
-        break;
       case "Groq":
-        aiModel = createXai({ apiKey: configToken })('grok-3-mini');
+        aiModel = createGroq({ apiKey: configToken })("llama-3.1-8b-instant");
         break;
       default:
         return { success: false, error: `Unsupported provider for testing: ${providerName}` };

@@ -4,21 +4,16 @@ import { create } from "zustand"
 import { getSession } from "next-auth/react"
 import { decryptData, encryptData } from "@/lib/crypto-client"
 
-export type ConfigStatus = "active" | "error" | "idle"
+export type ConfigStatus = "passed" | "error" | "idle"
 
 export type AIProvider =
   | "OpenAI"
   | "Anthropic"
   | "Gemini"
-  | "Google Vertex AI"
-  | "Mistral"
-  | "Amazon Bedrock"
-  | "Cohere"
   | "Groq"
 
 export interface APIKeyInfo {
   id: string
-  name?: string
   provider?: AIProvider
   token?: string
   status: ConfigStatus

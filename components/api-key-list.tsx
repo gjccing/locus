@@ -1,6 +1,6 @@
 "use client"
 
-import { APIKeyCard } from "@/components/api-key-card"
+import { APIKeyInputGroup } from "@/components/api-key-input-group"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from "@primer/octicons-react"
 import { useEffect, useRef } from "react"
@@ -38,7 +38,7 @@ export function ApiKeyList() {
         Model API Keys
       </Small>
       {apiKeys.map((keyInfo) => (
-        <APIKeyCard
+        <APIKeyInputGroup
           key={keyInfo.id}
           className="shrink-0"
           {...keyInfo}

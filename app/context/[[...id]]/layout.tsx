@@ -10,7 +10,7 @@ export default async function ContextLayout({
   children: React.ReactNode
 }>) {
   const { id } = await params
-  const contextId = id?.[0] ?? "preview"
+  const contextId = id?.[0]
   return (
     <>
       <BootstrapStore />

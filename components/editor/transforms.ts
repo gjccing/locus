@@ -2,13 +2,8 @@
 
 import type { PlateEditor } from 'platejs/react';
 
-import { insertCallout } from '@platejs/callout';
 import { insertCodeBlock, toggleCodeBlock } from '@platejs/code-block';
-import { insertDate } from '@platejs/date';
-import { insertFootnote } from '@platejs/footnote';
-import { insertColumnGroup, toggleColumnGroup } from '@platejs/layout';
-import { triggerFloatingLink } from '@platejs/link/react';
-import { insertEquation, insertInlineEquation } from '@platejs/math';
+import { insertEquation } from '@platejs/math';
 import {
   insertAudioPlaceholder,
   insertFilePlaceholder,
@@ -16,7 +11,6 @@ import {
   insertVideoPlaceholder,
 } from '@platejs/media';
 import { TablePlugin } from '@platejs/table/react';
-import { insertToc } from '@platejs/toc';
 import {
   type NodeEntry,
   type Path,
@@ -24,9 +18,6 @@ import {
   KEYS,
   PathApi,
 } from 'platejs';
-
-const ACTION_THREE_COLUMNS = 'action_three_columns';
-const ACTION_FOOTNOTE = 'action_footnote';
 
 const insertList = (editor: PlateEditor, type: string) => {
   editor.tf.insertNodes(
@@ -51,6 +42,7 @@ const selectBlockquoteStart = (editor: PlateEditor, path: Path) => {
   }
 };
 
+/** Block inserts used by Markdown deserialization and media; slash uses a subset via {@link insertBlock}. */
 const insertBlockMap: Record<
   string,
   (editor: PlateEditor, type: string) => void
@@ -58,10 +50,7 @@ const insertBlockMap: Record<
   [KEYS.listTodo]: insertList,
   [KEYS.ol]: insertList,
   [KEYS.ul]: insertList,
-  [ACTION_THREE_COLUMNS]: (editor) =>
-    insertColumnGroup(editor, { columns: 3, select: true }),
   [KEYS.audio]: (editor) => insertAudioPlaceholder(editor, { select: true }),
-  [KEYS.callout]: (editor) => insertCallout(editor, { select: true }),
   [KEYS.codeBlock]: (editor) => insertCodeBlock(editor, { select: true }),
   [KEYS.equation]: (editor) => insertEquation(editor, { select: true }),
   [KEYS.file]: (editor) => insertFilePlaceholder(editor, { select: true }),
@@ -77,19 +66,7 @@ const insertBlockMap: Record<
     }),
   [KEYS.table]: (editor) =>
     editor.getTransforms(TablePlugin).insert.table({}, { select: true }),
-  [KEYS.toc]: (editor) => insertToc(editor, { select: true }),
   [KEYS.video]: (editor) => insertVideoPlaceholder(editor, { select: true }),
-};
-
-const insertInlineMap: Record<
-  string,
-  (editor: PlateEditor, type: string) => void
-> = {
-  [KEYS.date]: (editor) => insertDate(editor, { select: true }),
-  [ACTION_FOOTNOTE]: (editor) => insertFootnote(editor, { select: true }),
-  [KEYS.inlineEquation]: (editor) =>
-    insertInlineEquation(editor, '', { select: true }),
-  [KEYS.link]: (editor) => triggerFloatingLink(editor, { focused: true }),
 };
 
 type InsertBlockOptions = {
@@ -149,12 +126,6 @@ export const insertBlock = (
   });
 };
 
-export const insertInlineElement = (editor: PlateEditor, type: string) => {
-  if (insertInlineMap[type]) {
-    insertInlineMap[type](editor, type);
-  }
-};
-
 const setList = (
   editor: PlateEditor,
   type: string,
@@ -178,7 +149,6 @@ const setBlockMap: Record<
   [KEYS.listTodo]: setList,
   [KEYS.ol]: setList,
   [KEYS.ul]: setList,
-  [ACTION_THREE_COLUMNS]: (editor) => toggleColumnGroup(editor, { columns: 3 }),
   [KEYS.codeBlock]: (editor) => toggleCodeBlock(editor),
 };
 

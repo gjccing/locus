@@ -5,31 +5,22 @@ import * as React from 'react';
 import type { PlateEditor, PlateElementProps } from 'platejs/react';
 
 import {
-  CalendarIcon,
   ChevronRightIcon,
   Code2,
-  Columns3Icon,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
-  LightbulbIcon,
   ListIcon,
   ListOrdered,
+  MinusIcon,
   PilcrowIcon,
   Quote,
-  RadicalIcon,
   Square,
-  SuperscriptIcon,
-  Table,
-  TableOfContentsIcon,
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
 
-import {
-  insertBlock,
-  insertInlineElement,
-} from '@/components/editor/transforms';
+import { insertBlock } from '@/components/editor/transforms';
 
 import {
   InlineCombobox,
@@ -41,158 +32,79 @@ import {
   InlineComboboxItem,
 } from './inline-combobox';
 
-type Group = {
-  group: string;
-  items: {
-    icon: React.ReactNode;
-    value: string;
-    onSelect: (editor: PlateEditor, value: string) => void;
-    className?: string;
-    focusEditor?: boolean;
-    keywords?: string[];
-    label?: string;
-  }[];
+type Item = {
+  icon: React.ReactNode;
+  value: string;
+  keywords?: string[];
+  label?: string;
 };
 
-const groups: Group[] = [
+const basicBlockItems: Item[] = [
   {
-    group: 'Basic blocks',
-    items: [
-      {
-        icon: <PilcrowIcon />,
-        keywords: ['paragraph'],
-        label: 'Text',
-        value: KEYS.p,
-      },
-      {
-        icon: <Heading1Icon />,
-        keywords: ['title', 'h1'],
-        label: 'Heading 1',
-        value: KEYS.h1,
-      },
-      {
-        icon: <Heading2Icon />,
-        keywords: ['subtitle', 'h2'],
-        label: 'Heading 2',
-        value: KEYS.h2,
-      },
-      {
-        icon: <Heading3Icon />,
-        keywords: ['subtitle', 'h3'],
-        label: 'Heading 3',
-        value: KEYS.h3,
-      },
-      {
-        icon: <ListIcon />,
-        keywords: ['unordered', 'ul', '-'],
-        label: 'Bulleted list',
-        value: KEYS.ul,
-      },
-      {
-        icon: <ListOrdered />,
-        keywords: ['ordered', 'ol', '1'],
-        label: 'Numbered list',
-        value: KEYS.ol,
-      },
-      {
-        icon: <Square />,
-        keywords: ['checklist', 'task', 'checkbox', '[]'],
-        label: 'To-do list',
-        value: KEYS.listTodo,
-      },
-      {
-        icon: <ChevronRightIcon />,
-        keywords: ['collapsible', 'expandable'],
-        label: 'Toggle',
-        value: KEYS.toggle,
-      },
-      {
-        icon: <Code2 />,
-        keywords: ['```'],
-        label: 'Code Block',
-        value: KEYS.codeBlock,
-      },
-      {
-        icon: <Table />,
-        label: 'Table',
-        value: KEYS.table,
-      },
-      {
-        icon: <Quote />,
-        keywords: ['citation', 'blockquote', 'quote', '>'],
-        label: 'Blockquote',
-        value: KEYS.blockquote,
-      },
-      {
-        description: 'Insert a highlighted block.',
-        icon: <LightbulbIcon />,
-        keywords: ['note'],
-        label: 'Callout',
-        value: KEYS.callout,
-      },
-    ].map((item) => ({
-      ...item,
-      onSelect: (editor, value) => {
-        insertBlock(editor, value, { upsert: true });
-      },
-    })),
+    icon: <PilcrowIcon />,
+    keywords: ['paragraph'],
+    label: 'Text',
+    value: KEYS.p,
   },
   {
-    group: 'Advanced blocks',
-    items: [
-      {
-        icon: <TableOfContentsIcon />,
-        keywords: ['toc'],
-        label: 'Table of contents',
-        value: KEYS.toc,
-      },
-      {
-        icon: <Columns3Icon />,
-        label: '3 columns',
-        value: 'action_three_columns',
-      },
-      {
-        focusEditor: false,
-        icon: <RadicalIcon />,
-        label: 'Equation',
-        value: KEYS.equation,
-      },
-    ].map((item) => ({
-      ...item,
-      onSelect: (editor, value) => {
-        insertBlock(editor, value, { upsert: true });
-      },
-    })),
+    icon: <Heading1Icon />,
+    keywords: ['title', 'h1'],
+    label: 'Heading 1',
+    value: KEYS.h1,
   },
   {
-    group: 'Inline',
-    items: [
-      {
-        focusEditor: true,
-        icon: <CalendarIcon />,
-        keywords: ['time'],
-        label: 'Date',
-        value: KEYS.date,
-      },
-      {
-        focusEditor: true,
-        icon: <SuperscriptIcon />,
-        keywords: ['citation', 'fn', 'footnote', '[^]'],
-        label: 'Footnote',
-        value: 'action_footnote',
-      },
-      {
-        focusEditor: false,
-        icon: <RadicalIcon />,
-        label: 'Inline Equation',
-        value: KEYS.inlineEquation,
-      },
-    ].map((item) => ({
-      ...item,
-      onSelect: (editor, value) => {
-        insertInlineElement(editor, value);
-      },
-    })),
+    icon: <Heading2Icon />,
+    keywords: ['subtitle', 'h2'],
+    label: 'Heading 2',
+    value: KEYS.h2,
+  },
+  {
+    icon: <Heading3Icon />,
+    keywords: ['subtitle', 'h3'],
+    label: 'Heading 3',
+    value: KEYS.h3,
+  },
+  {
+    icon: <ListIcon />,
+    keywords: ['unordered', 'ul', '-'],
+    label: 'Bulleted list',
+    value: KEYS.ul,
+  },
+  {
+    icon: <ListOrdered />,
+    keywords: ['ordered', 'ol', '1'],
+    label: 'Numbered list',
+    value: KEYS.ol,
+  },
+  {
+    icon: <Square />,
+    keywords: ['checklist', 'task', 'checkbox', '[]'],
+    label: 'To-do list',
+    value: KEYS.listTodo,
+  },
+  {
+    icon: <ChevronRightIcon />,
+    keywords: ['collapsible', 'expandable'],
+    label: 'Toggle',
+    value: KEYS.toggle,
+  },
+  {
+    icon: <Code2 />,
+    keywords: ['```'],
+    label: 'Code block',
+    value: KEYS.codeBlock,
+  },
+  {
+    icon: <Quote />,
+    keywords: ['citation', 'blockquote', 'quote', '>'],
+    label: 'Blockquote',
+    value: KEYS.blockquote,
+  },
+  {
+    icon: <MinusIcon />,
+    keywords: ['divider', 'horizontal rule', '---'],
+    label: 'Divider',
+    value: KEYS.hr,
   },
 ];
 
@@ -209,28 +121,23 @@ export function SlashInputElement(
         <InlineComboboxContent>
           <InlineComboboxEmpty>No results</InlineComboboxEmpty>
 
-          {groups.map(({ group, items }) => (
-            <InlineComboboxGroup key={group}>
-              <InlineComboboxGroupLabel>{group}</InlineComboboxGroupLabel>
+          <InlineComboboxGroup>
+            <InlineComboboxGroupLabel>Basic blocks</InlineComboboxGroupLabel>
 
-              {items.map(
-                ({ focusEditor, icon, keywords, label, value, onSelect }) => (
-                  <InlineComboboxItem
-                    key={value}
-                    value={value}
-                    onClick={() => onSelect(editor, value)}
-                    label={label}
-                    focusEditor={focusEditor}
-                    group={group}
-                    keywords={keywords}
-                  >
-                    <div className="mr-2 text-muted-foreground">{icon}</div>
-                    {label ?? value}
-                  </InlineComboboxItem>
-                )
-              )}
-            </InlineComboboxGroup>
-          ))}
+            {basicBlockItems.map(({ icon, keywords, label, value }) => (
+              <InlineComboboxItem
+                key={value}
+                value={value}
+                onClick={() => insertBlock(editor, value, { upsert: true })}
+                label={label}
+                group="Basic blocks"
+                keywords={keywords}
+              >
+                <div className="mr-2 text-muted-foreground">{icon}</div>
+                {label ?? value}
+              </InlineComboboxItem>
+            ))}
+          </InlineComboboxGroup>
         </InlineComboboxContent>
       </InlineCombobox>
 

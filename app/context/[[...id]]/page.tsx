@@ -14,7 +14,8 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
   const contextId = id?.[0] ?? "home"
 
   return (
-    <main className="relative flex h-full min-h-0 w-full flex-col items-center justify-start bg-secondary pt-14">
+
+    <main className="relative h-screen w-full flex items-end-safe bg-secondary overflow-auto">
       <SidebarTrigger className="absolute left-4 top-4 z-50" />
 
       {user && (

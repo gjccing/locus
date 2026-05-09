@@ -28,9 +28,9 @@ export default function ContextEditor({ contextId }: { contextId: string }) {
         <span>Type / for blocks, @ to mention, paste Markdown</span>
       </p>
 
-      <div className="flex min-h-[min(70vh,720px)] flex-1 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
+      <div className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
         <Plate editor={editor}>
-          <EditorContainer variant="default" className="flex-1 overflow-y-auto">
+          <EditorContainer variant="default" className="overflow-y-auto">
             <Editor variant="default" placeholder={CONTEXT_EDITOR_PLACEHOLDER} />
           </EditorContainer>
         </Plate>

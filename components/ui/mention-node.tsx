@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { useComboboxContext } from '@ariakit/react';
 import type { TComboboxInputElement, TMentionElement } from 'platejs';
 import type { PlateElementProps } from 'platejs/react';
 
@@ -14,15 +15,25 @@ import {
   useSelected,
 } from 'platejs/react';
 
+import {
+  fetchGatewayCatalog,
+  fetchGroqLatestModels,
+  gatewayOwnedBy,
+  MENTION_MODELS_PER_PROVIDER,
+  pickLatestGatewayModels,
+} from '@/lib/mention-models';
 import { cn } from '@/lib/utils';
 import { useMounted } from '@/hooks/use-mounted';
 import { inlineSuggestionVariants } from '@/lib/suggestion';
+import type { AIProvider } from '@/stores/app-store';
+import { useAppStore } from '@/stores/app-store';
 
 import {
   InlineCombobox,
   InlineComboboxContent,
   InlineComboboxEmpty,
   InlineComboboxGroup,
+  InlineComboboxGroupLabel,
   InlineComboboxInput,
   InlineComboboxItem,
 } from './inline-combobox';
@@ -42,7 +53,7 @@ export function MentionElement(
     <PlateElement
       {...props}
       className={cn(
-        'inline-block rounded-md bg-muted px-1.5 py-0.5 align-baseline font-medium text-sm',
+        'inline-block rounded-md bg-muted mx-0.5 px-1.5 py-0.5 align-baseline font-medium text-sm',
         inlineSuggestionVariants(),
         !readOnly && 'cursor-pointer',
         selected && focused && 'ring-2 ring-ring',
@@ -78,6 +89,179 @@ export function MentionElement(
 
 const onSelectItem = getMentionOnSelectItem();
 
+const providerGroupLabel: Record<AIProvider, string> = {
+  OpenAI: "OpenAI",
+  Anthropic: "Anthropic",
+  Gemini: "Google Gemini",
+  Groq: "Groq",
+};
+
+type MentionModelGroup = {
+  provider: AIProvider;
+  models: { id: string; label: string }[];
+};
+
+function usePassedProviderKeys() {
+  const apiKeys = useAppStore((s) => s.apiKeys);
+
+  return React.useMemo(() => {
+    const map = new Map<AIProvider, string>();
+
+    for (const k of apiKeys) {
+      if (k.status !== "passed" || !k.provider || !k.token?.trim()) continue;
+      if (!map.has(k.provider)) {
+        map.set(k.provider, k.token.trim());
+      }
+    }
+
+    return map;
+  }, [apiKeys]);
+}
+
+function MentionComboboxModels({
+  editor,
+  search,
+}: {
+  editor: PlateElementProps<TComboboxInputElement>["editor"];
+  search: string;
+}) {
+  const store = useComboboxContext()!;
+  const open = store.useState("open");
+  const passedByProvider = usePassedProviderKeys();
+
+  const [groups, setGroups] = React.useState<MentionModelGroup[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const ac = new AbortController();
+
+    (async () => {
+      if (passedByProvider.size === 0) {
+        setGroups([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        let catalog: Awaited<ReturnType<typeof fetchGatewayCatalog>> | null =
+          null;
+
+        const nextGroups: MentionModelGroup[] = [];
+
+        for (const provider of [...passedByProvider.keys()].sort((a, b) =>
+          a.localeCompare(b)
+        )) {
+          const token = passedByProvider.get(provider)!;
+
+          if (provider === "Groq") {
+            const models = await fetchGroqLatestModels(
+              token,
+              MENTION_MODELS_PER_PROVIDER,
+              ac.signal
+            );
+            if (models.length > 0) {
+              nextGroups.push({ provider, models });
+            }
+            continue;
+          }
+
+          const ownedBy = gatewayOwnedBy(provider);
+          if (!ownedBy) continue;
+
+          if (!catalog) {
+            catalog = await fetchGatewayCatalog(ac.signal);
+          }
+
+          const models = pickLatestGatewayModels(
+            catalog,
+            ownedBy,
+            MENTION_MODELS_PER_PROVIDER
+          );
+
+          if (models.length > 0) {
+            nextGroups.push({ provider, models });
+          }
+        }
+
+        if (!ac.signal.aborted) {
+          setGroups(nextGroups);
+        }
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        setError(e instanceof Error ? e.message : "Could not load models");
+        setGroups([]);
+      } finally {
+        if (!ac.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => ac.abort();
+  }, [open, passedByProvider]);
+
+  if (passedByProvider.size === 0) {
+    return (
+      <>
+        <InlineComboboxEmpty>
+          Verify an API key (passed test) in settings to see models from{" "}
+          <a
+            className="underline underline-offset-2"
+            href="https://vercel.com/ai-gateway/models"
+            rel="noreferrer"
+            target="_blank"
+          >
+            the AI Gateway catalog
+          </a>
+          .
+        </InlineComboboxEmpty>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <InlineComboboxEmpty>
+        {loading
+          ? "Loading models…"
+          : error
+            ? error
+            : "No matching models"}
+      </InlineComboboxEmpty>
+
+      {groups.map((g) => (
+        <InlineComboboxGroup key={g.provider}>
+          <InlineComboboxGroupLabel>
+            {providerGroupLabel[g.provider]}
+          </InlineComboboxGroupLabel>
+          {g.models.map((m) => {
+            const item = { key: m.id, text: m.id };
+            return (
+              <InlineComboboxItem
+                key={m.id}
+                group={providerGroupLabel[g.provider]}
+                keywords={[m.id, g.provider]}
+                label={m.label}
+                value={m.label}
+                onClick={() => onSelectItem(editor, item, search)}
+              >
+                <span className="truncate">{m.label}</span>
+              </InlineComboboxItem>
+            );
+          })}
+        </InlineComboboxGroup>
+      ))}
+    </>
+  );
+}
+
 export function MentionInputElement(
   props: PlateElementProps<TComboboxInputElement>
 ) {
@@ -98,19 +282,7 @@ export function MentionInputElement(
         </span>
 
         <InlineComboboxContent className="my-1.5">
-          <InlineComboboxEmpty>No results</InlineComboboxEmpty>
-
-          <InlineComboboxGroup>
-            {MENTIONABLES.map((item) => (
-              <InlineComboboxItem
-                key={item.key}
-                value={item.text}
-                onClick={() => onSelectItem(editor, item, search)}
-              >
-                {item.text}
-              </InlineComboboxItem>
-            ))}
-          </InlineComboboxGroup>
+          <MentionComboboxModels editor={editor} search={search} />
         </InlineComboboxContent>
       </InlineCombobox>
 
@@ -118,15 +290,3 @@ export function MentionInputElement(
     </PlateElement>
   );
 }
-
-/** Demo directory; wire to your users or search API. */
-const MENTIONABLES = [
-  { key: "1", text: "Alice" },
-  { key: "2", text: "Bob" },
-  { key: "3", text: "Carol" },
-  { key: "4", text: "Design" },
-  { key: "5", text: "Engineering" },
-  { key: "6", text: "Everyone" },
-  { key: "7", text: "Legal" },
-  { key: "8", text: "Product" },
-]

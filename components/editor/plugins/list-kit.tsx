@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  BulletedListRules,
-  OrderedListRules,
-  TaskListRules,
-} from '@platejs/list';
+import { BulletedListRules, OrderedListRules } from '@platejs/list';
 import { ListPlugin } from '@platejs/list/react';
 import { KEYS } from 'platejs';
 
@@ -19,8 +15,6 @@ export const ListKit = [
       BulletedListRules.markdown({ variant: '*' }),
       OrderedListRules.markdown({ variant: '.' }),
       OrderedListRules.markdown({ variant: ')' }),
-      TaskListRules.markdown({ checked: false }),
-      TaskListRules.markdown({ checked: true }),
     ],
     inject: {
       targetPlugins: [

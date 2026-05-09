@@ -47,7 +47,6 @@ const insertBlockMap: Record<
   string,
   (editor: PlateEditor, type: string) => void
 > = {
-  [KEYS.listTodo]: insertList,
   [KEYS.ol]: insertList,
   [KEYS.ul]: insertList,
   [KEYS.audio]: (editor) => insertAudioPlaceholder(editor, { select: true }),
@@ -146,7 +145,6 @@ const setBlockMap: Record<
   string,
   (editor: PlateEditor, type: string, entry: NodeEntry<TElement>) => void
 > = {
-  [KEYS.listTodo]: setList,
   [KEYS.ol]: setList,
   [KEYS.ul]: setList,
   [KEYS.codeBlock]: (editor) => toggleCodeBlock(editor),

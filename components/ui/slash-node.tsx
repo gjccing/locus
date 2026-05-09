@@ -15,7 +15,6 @@ import {
   MinusIcon,
   PilcrowIcon,
   Quote,
-  Square,
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
@@ -75,12 +74,6 @@ const basicBlockItems: Item[] = [
     keywords: ['ordered', 'ol', '1'],
     label: 'Numbered list',
     value: KEYS.ol,
-  },
-  {
-    icon: <Square />,
-    keywords: ['checklist', 'task', 'checkbox', '[]'],
-    label: 'To-do list',
-    value: KEYS.listTodo,
   },
   {
     icon: <ChevronRightIcon />,

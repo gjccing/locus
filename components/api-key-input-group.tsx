@@ -232,6 +232,10 @@ export function APIKeyInputGroup({
             size="icon"
             disabled={!currentProvider || !currentToken}
             aria-label="Test API key"
+            className={cn(
+              status === "passed" &&
+                "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
+            )}
           >
             <PlayIcon />
           </Button>

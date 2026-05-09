@@ -39,7 +39,9 @@ export function SettingsSheet({ user }: SettingsSheetProps) {
         <SheetHeader>
           <SheetTitle className="text-xl">Settings</SheetTitle>
         </SheetHeader>
-        <ApiKeyList />
+        <div className="overflow-y-auto scroll-shadow-y">
+          <ApiKeyList />
+        </div>
         <SheetFooter>
           <form
             action={async () => {

@@ -49,6 +49,9 @@
     --radius-4xl: calc(var(--radius) * 2.6);
     --color-brand: var(--brand);
     --color-highlight: var(--highlight);
+    /* Pure CSS scroll shadows (background-attachment: local); see https://lea.verou.me/2012/04/background-attachment-local/ */
+    --scroll-shadow-mask-size: 2.8125rem;
+    --scroll-shadow-size: 0.9375rem;
 }
 
 :root {
@@ -86,6 +89,8 @@
     --sidebar-ring: oklch(0.708 0 0);
     --brand: oklch(0.623 0.214 259.815);
     --highlight: oklch(0.852 0.199 91.936);
+    --scroll-shadow-bg: var(--background);
+    --scroll-shadow-color: oklch(0 0 0 / 0.14);
 }
 
 .dark {
@@ -122,6 +127,8 @@
     --sidebar-ring: oklch(0.556 0 0);
     --brand: oklch(0.707 0.165 254.624);
     --highlight: oklch(0.852 0.199 91.936);
+    --scroll-shadow-bg: var(--background);
+    --scroll-shadow-color: oklch(1 0 0 / 0.12);
 }
 
 @layer base {
@@ -134,4 +141,57 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Scroll-edge shadows: local+scroll backgrounds (https://css-scroll-shadows.vercel.app/). */
+@layer utilities {
+  .scroll-shadow-y {
+    background:
+      linear-gradient(var(--scroll-shadow-bg) 33%, transparent),
+      linear-gradient(transparent, var(--scroll-shadow-bg) 66%) 0 100%,
+      radial-gradient(
+        farthest-side at 50% 0,
+        var(--scroll-shadow-color),
+        transparent
+      ),
+      radial-gradient(
+          farthest-side at 50% 100%,
+          var(--scroll-shadow-color),
+          transparent
+        )
+        0 100%;
+    background-color: var(--scroll-shadow-bg);
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+    background-size:
+      100% var(--scroll-shadow-mask-size),
+      100% var(--scroll-shadow-mask-size),
+      100% var(--scroll-shadow-size),
+      100% var(--scroll-shadow-size);
+  }
+
+  .scroll-shadow-x {
+    background:
+      linear-gradient(to right, var(--scroll-shadow-bg) 33%, transparent),
+      linear-gradient(to left, var(--scroll-shadow-bg) 33%) 100% 0,
+      radial-gradient(
+        farthest-side at 0 50%,
+        var(--scroll-shadow-color),
+        transparent
+      ),
+      radial-gradient(
+          farthest-side at 100% 50%,
+          var(--scroll-shadow-color),
+          transparent
+        )
+        100% 0;
+    background-color: var(--scroll-shadow-bg);
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+    background-size:
+      var(--scroll-shadow-mask-size) 100%,
+      var(--scroll-shadow-mask-size) 100%,
+      var(--scroll-shadow-size) 100%,
+      var(--scroll-shadow-size) 100%;
+  }
 }

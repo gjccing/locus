@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { SettingsSheet } from "@/components/settings-sheet"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import PlateEditor from "./plate-editor"
+import ContextEditor from "@/components/editor/context-editor"
 
 export const metadata = {
   title: "Context",
@@ -23,7 +23,7 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
         </div>
       )}
 
-      <PlateEditor contextId={contextId} />
+      <ContextEditor contextId={contextId} />
     </main>
   )
 }

@@ -4,6 +4,7 @@ import type { Value } from "platejs"
 import { Plate, usePlateEditor } from "platejs/react"
 
 import { ContextEditorKit } from "@/components/editor/context-editor-kit"
+import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-placeholder-kit"
 import { Editor, EditorContainer } from "@/components/ui/editor"
 
 const initialValue: Value = [
@@ -13,7 +14,7 @@ const initialValue: Value = [
   },
 ]
 
-export default function PlateEditor({ contextId }: { contextId: string }) {
+export default function ContextEditor({ contextId }: { contextId: string }) {
   const editor = usePlateEditor({
     plugins: ContextEditorKit,
     value: initialValue,
@@ -30,7 +31,7 @@ export default function PlateEditor({ contextId }: { contextId: string }) {
       <div className="flex min-h-[min(70vh,720px)] flex-1 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
         <Plate editor={editor}>
           <EditorContainer variant="default" className="flex-1 overflow-y-auto">
-            <Editor variant="default" placeholder="" />
+            <Editor variant="default" placeholder={CONTEXT_EDITOR_PLACEHOLDER} />
           </EditorContainer>
         </Plate>
       </div>

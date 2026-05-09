@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { SettingsSheet } from "@/components/settings-sheet"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import ContextEditor from "@/components/context-editor"
+import PlateEditor from "./plate-editor"
 
 export const metadata = {
   title: "Context",
@@ -14,7 +14,7 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
   const contextId = id?.[0] ?? "home"
 
   return (
-    <main className="relative h-full w-full flex flex-col items-center justify-center bg-secondary">
+    <main className="relative flex h-full min-h-0 w-full flex-col items-center justify-start bg-secondary pt-14">
       <SidebarTrigger className="absolute left-4 top-4 z-50" />
 
       {user && (
@@ -23,7 +23,7 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
         </div>
       )}
 
-      <ContextEditor contextId={contextId} />
+      <PlateEditor contextId={contextId} />
     </main>
   )
 }

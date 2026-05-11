@@ -29,15 +29,17 @@ import { cn } from "@/lib/utils"
 import type {
   AIProvider,
   AssistantInfo,
-  AssistantRule,
+  ContentSelectionMode,
 } from "@/stores/app-store"
 import { useAppStore } from "@/stores/app-store"
 
-const RULE_OPTIONS: { value: AssistantRule; label: string }[] = [
+const CONTENT_SELECTION_OPTIONS: {
+  value: ContentSelectionMode
+  label: string
+}[] = [
   { value: "balanced", label: "Balanced" },
   { value: "concise", label: "Concise" },
   { value: "detailed", label: "Detailed" },
-  { value: "ai", label: "AI selection" },
 ]
 
 interface AssistantCardProps extends AssistantInfo {
@@ -70,8 +72,7 @@ export function AssistantCard({
   className,
   name,
   apiKeyId,
-  rule,
-  rulePrompt,
+  contentSelection,
   instructions,
   onDelete,
   onUpdate,
@@ -79,14 +80,11 @@ export function AssistantCard({
   const baseId = useId()
   const apiKeys = useAppStore((s) => s.apiKeys)
   const [localName, setLocalName] = useState(name)
-  const [localRulePrompt, setLocalRulePrompt] = useState(rulePrompt)
   const [localInstructions, setLocalInstructions] = useState(instructions)
 
   const validKeyIds = new Set(apiKeys.map((k) => k.id))
   const selectKeyId =
     apiKeyId && validKeyIds.has(apiKeyId) ? apiKeyId : undefined
-
-  const rulePromptEditable = rule === "ai"
 
   return (
     <Card size="sm" className={cn("shrink-0 bg-transparent", className)}>
@@ -139,55 +137,32 @@ export function AssistantCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-rule`}>Rule</Label>
+          <Label htmlFor={`${baseId}-content-selection`}>
+            Content selection
+          </Label>
           <Select
-            value={rule}
+            value={contentSelection}
             onValueChange={(value) => {
-              onUpdate?.({ rule: value as AssistantRule })
+              onUpdate?.({
+                contentSelection: value as ContentSelectionMode,
+              })
             }}
           >
             <SelectTrigger
-              id={`${baseId}-rule`}
+              id={`${baseId}-content-selection`}
               size="sm"
               className="w-full min-w-0"
             >
-              <SelectValue placeholder="Select rule" />
+              <SelectValue placeholder="How content is chosen for the prompt" />
             </SelectTrigger>
             <SelectContent>
-              {RULE_OPTIONS.map((opt) => (
+              {CONTENT_SELECTION_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-rule-prompt`}>
-            How the model selects content
-          </Label>
-          <Textarea
-            id={`${baseId}-rule-prompt`}
-            readOnly={!rulePromptEditable}
-            value={localRulePrompt}
-            onChange={(e) => setLocalRulePrompt(e.target.value)}
-            onBlur={() => {
-              if (!rulePromptEditable) return
-              if (localRulePrompt !== rulePrompt) {
-                onUpdate?.({ rulePrompt: localRulePrompt })
-              }
-            }}
-            placeholder={
-              rulePromptEditable
-                ? "Describe how the assistant should adapt its rules for each task…"
-                : "Switch to “AI selection” to edit this prompt."
-            }
-            className={cn(
-              "min-h-20",
-              !rulePromptEditable && "cursor-default bg-muted/40 text-muted-foreground"
-            )}
-          />
         </div>
 
         <div className="flex flex-col gap-2">

@@ -15,15 +15,14 @@ export interface APIKeyInfo {
   status: ConfigStatus
 }
 
-/** Preset behavior rules; `ai` means the model picks behavior from `rulePrompt`. */
-export type AssistantRule = "balanced" | "concise" | "detailed" | "ai"
+/** How much / which content is gathered when building the prompt. */
+export type ContentSelectionMode = "balanced" | "concise" | "detailed"
 
 export interface AssistantInfo {
   id: string
   name: string
   apiKeyId?: string
-  rule: AssistantRule
-  rulePrompt: string
+  contentSelection: ContentSelectionMode
   instructions: string
 }
 
@@ -142,20 +141,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     try {
-      const parsed = JSON.parse(stored) as Partial<AssistantInfo>[]
+      type StoredAssistantRow = Partial<AssistantInfo> & {
+        id?: string
+        rule?: ContentSelectionMode | string
+      }
+      const parsed = JSON.parse(stored) as StoredAssistantRow[]
       const assistants: AssistantInfo[] = parsed
-        .filter((row): row is Partial<AssistantInfo> & { id: string } =>
+        .filter((row): row is StoredAssistantRow & { id: string } =>
           typeof row?.id === "string"
         )
-        .map((row) => ({
-          id: row.id,
-          name: typeof row.name === "string" ? row.name : "",
-          apiKeyId: row.apiKeyId,
-          rule: row.rule ?? "balanced",
-          rulePrompt: typeof row.rulePrompt === "string" ? row.rulePrompt : "",
-          instructions:
-            typeof row.instructions === "string" ? row.instructions : "",
-        }))
+        .map((row) => {
+          const raw = row.contentSelection ?? row.rule
+          const contentSelection: ContentSelectionMode =
+            raw === "concise" || raw === "detailed" ? raw : "balanced"
+          return {
+            id: row.id,
+            name: typeof row.name === "string" ? row.name : "",
+            apiKeyId: row.apiKeyId,
+            contentSelection,
+            instructions:
+              typeof row.instructions === "string" ? row.instructions : "",
+          }
+        })
       set({ assistants, assistantsIsLoaded: true })
     } catch {
       set({ assistantsIsLoaded: true })

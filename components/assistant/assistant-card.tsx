@@ -46,9 +46,24 @@ interface AssistantCardProps extends AssistantInfo {
   onUpdate?: (updates: Partial<AssistantInfo>) => void
 }
 
-function apiKeyLabel(provider: AIProvider | undefined, id: string) {
-  const short = id.slice(0, 8)
-  return provider ? `${provider} (${short})` : `Key ${short}`
+const TOKEN_PREVIEW_HEAD = 4
+const TOKEN_PREVIEW_TAIL = 4
+
+function tokenPreview(token: string | undefined) {
+  const t = token?.trim() ?? ""
+  if (!t) return "Not set"
+  if (t.length <= TOKEN_PREVIEW_HEAD + TOKEN_PREVIEW_TAIL + 1) {
+    return t
+  }
+  return `${t.slice(0, TOKEN_PREVIEW_HEAD)}…${t.slice(-TOKEN_PREVIEW_TAIL)}`
+}
+
+function apiKeyLabel(
+  provider: AIProvider | undefined,
+  token: string | undefined
+) {
+  const preview = tokenPreview(token)
+  return provider ? `${provider} · ${preview}` : `Key · ${preview}`
 }
 
 export function AssistantCard({
@@ -92,7 +107,7 @@ export function AssistantCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-api-key`}>Model API key</Label>
+          <Label htmlFor={`${baseId}-api-key`}>API key</Label>
           <Select
             value={selectKeyId}
             onValueChange={(value) => {
@@ -116,7 +131,7 @@ export function AssistantCard({
             <SelectContent>
               {apiKeys.map((k) => (
                 <SelectItem key={k.id} value={k.id}>
-                  {apiKeyLabel(k.provider, k.id)}
+                  {apiKeyLabel(k.provider, k.token)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -150,7 +165,7 @@ export function AssistantCard({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${baseId}-rule-prompt`}>
-            How the model should choose behavior
+            How the model selects content
           </Label>
           <Textarea
             id={`${baseId}-rule-prompt`}

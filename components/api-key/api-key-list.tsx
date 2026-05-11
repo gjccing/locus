@@ -35,7 +35,7 @@ export function ApiKeyList() {
   return (
     <div ref={scrollRef} className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
       <Small className="tracking-widest text-muted-foreground uppercase text-xs">
-        Model API Keys
+        API Keys
       </Small>
       {apiKeys.map((keyInfo) => (
         <APIKeyInputGroup

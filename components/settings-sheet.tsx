@@ -1,3 +1,6 @@
+"use client"
+
+import { handleSignOut } from "@/app/actions/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sheet,
@@ -8,7 +11,6 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { signOut } from "@/auth"
 import { SignInIcon } from "@primer/octicons-react"
 import { ApiKeyList } from "@/components/api-key/api-key-list"
 import { AssistantList } from "@/components/assistant/assistant-list"
@@ -45,12 +47,7 @@ export function SettingsSheet({ user }: SettingsSheetProps) {
           <AssistantList />
         </div>
         <SheetFooter>
-          <form
-            action={async () => {
-              "use server"
-              await signOut({ redirectTo: "/" })
-            }}
-          >
+          <form action={handleSignOut}>
             <Button
               type="submit"
               variant="outline"

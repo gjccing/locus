@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/auth"
 import { SignInIcon } from "@primer/octicons-react"
-import { ApiKeyList } from "@/components/api-key-list"
+import { ApiKeyList } from "@/components/api-key/api-key-list"
 
 interface SettingsSheetProps {
   user: {

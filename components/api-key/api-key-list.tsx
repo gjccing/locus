@@ -1,6 +1,6 @@
 "use client"
 
-import { APIKeyInputGroup } from "@/components/api-key-input-group"
+import { APIKeyInputGroup } from "@/components/api-key/api-key-input-group"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from "@primer/octicons-react"
 import { useEffect, useRef } from "react"

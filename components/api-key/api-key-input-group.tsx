@@ -141,7 +141,7 @@ export function APIKeyInputGroup({
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-1", className)}>
       <InputGroup className="flex-1">
         <InputGroupAddon align="inline-start">
           <DropdownMenu>
@@ -234,7 +234,7 @@ export function APIKeyInputGroup({
             aria-label="Test API key"
             className={cn(
               status === "passed" &&
-                "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
+              "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
             )}
           >
             <PlayIcon />

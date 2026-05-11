@@ -6,11 +6,7 @@ import { decryptData, encryptData } from "@/lib/crypto-client"
 
 export type ConfigStatus = "passed" | "error" | "idle"
 
-export type AIProvider =
-  | "OpenAI"
-  | "Anthropic"
-  | "Gemini"
-  | "Groq"
+export type AIProvider = "OpenAI" | "Anthropic" | "Gemini" | "Groq"
 
 export interface APIKeyInfo {
   id: string
@@ -101,4 +97,3 @@ export const useAppStore = create<AppState>((set, get) => ({
     await get().apiKeysSaveToSession()
   },
 }))
-

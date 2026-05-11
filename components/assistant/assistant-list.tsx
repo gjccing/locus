@@ -36,7 +36,7 @@ export function AssistantList() {
       className="flex flex-1 flex-col gap-4 overflow-y-auto p-4"
     >
       <Small className="text-xs tracking-widest text-muted-foreground uppercase">
-        Custom GPTs
+        Assistants
       </Small>
       {assistants.map((assistant) => (
         <AssistantCard
@@ -52,6 +52,7 @@ export function AssistantList() {
         onClick={() =>
           void addAssistant({
             id: crypto.randomUUID(),
+            name: "",
             rule: "balanced",
             rulePrompt: "",
             instructions: "",

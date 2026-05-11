@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useId, useState } from "react"
+import { useId, useState } from "react"
 import { TrashIcon } from "@primer/octicons-react"
 import {
   AlertDialog,
@@ -14,13 +14,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -58,7 +53,7 @@ function apiKeyLabel(provider: AIProvider | undefined, id: string) {
 
 export function AssistantCard({
   className,
-  id,
+  name,
   apiKeyId,
   rule,
   rulePrompt,
@@ -68,55 +63,34 @@ export function AssistantCard({
 }: AssistantCardProps) {
   const baseId = useId()
   const apiKeys = useAppStore((s) => s.apiKeys)
+  const [localName, setLocalName] = useState(name)
   const [localRulePrompt, setLocalRulePrompt] = useState(rulePrompt)
   const [localInstructions, setLocalInstructions] = useState(instructions)
-
-  useEffect(() => {
-    setLocalRulePrompt(rulePrompt)
-  }, [rulePrompt, id])
-
-  useEffect(() => {
-    setLocalInstructions(instructions)
-  }, [instructions, id])
 
   const validKeyIds = new Set(apiKeys.map((k) => k.id))
   const selectKeyId =
     apiKeyId && validKeyIds.has(apiKeyId) ? apiKeyId : undefined
 
+  const rulePromptEditable = rule === "ai"
+
   return (
     <Card size="sm" className={cn("shrink-0 bg-transparent", className)}>
-      <CardHeader className="border-b pb-4">
-        <CardTitle>Custom GPT</CardTitle>
-        <CardAction>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                aria-label="Delete assistant"
-              >
-                <TrashIcon />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete assistant</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Remove this custom GPT configuration? This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={onDelete}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardAction>
-      </CardHeader>
       <CardContent className="flex flex-col gap-4 pt-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${baseId}-name`}>Name</Label>
+          <Input
+            id={`${baseId}-name`}
+            value={localName}
+            onChange={(e) => setLocalName(e.target.value)}
+            onBlur={() => {
+              if (localName !== name) {
+                onUpdate?.({ name: localName })
+              }
+            }}
+            placeholder="Assistant name"
+          />
+        </div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${baseId}-api-key`}>Model API key</Label>
           <Select
@@ -174,25 +148,32 @@ export function AssistantCard({
           </Select>
         </div>
 
-        {rule === "ai" ? (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={`${baseId}-rule-prompt`}>
-              How the model should choose behavior
-            </Label>
-            <Textarea
-              id={`${baseId}-rule-prompt`}
-              value={localRulePrompt}
-              onChange={(e) => setLocalRulePrompt(e.target.value)}
-              onBlur={() => {
-                if (localRulePrompt !== rulePrompt) {
-                  onUpdate?.({ rulePrompt: localRulePrompt })
-                }
-              }}
-              placeholder="Describe how the assistant should adapt its rules for each task…"
-              className="min-h-20"
-            />
-          </div>
-        ) : null}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${baseId}-rule-prompt`}>
+            How the model should choose behavior
+          </Label>
+          <Textarea
+            id={`${baseId}-rule-prompt`}
+            readOnly={!rulePromptEditable}
+            value={localRulePrompt}
+            onChange={(e) => setLocalRulePrompt(e.target.value)}
+            onBlur={() => {
+              if (!rulePromptEditable) return
+              if (localRulePrompt !== rulePrompt) {
+                onUpdate?.({ rulePrompt: localRulePrompt })
+              }
+            }}
+            placeholder={
+              rulePromptEditable
+                ? "Describe how the assistant should adapt its rules for each task…"
+                : "Switch to “AI selection” to edit this prompt."
+            }
+            className={cn(
+              "min-h-20",
+              !rulePromptEditable && "cursor-default bg-muted/40 text-muted-foreground"
+            )}
+          />
+        </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={`${baseId}-instructions`}>Assistant instructions</Label>
@@ -210,6 +191,34 @@ export function AssistantCard({
           />
         </div>
       </CardContent>
+      <CardFooter className="justify-end border-t pt-4">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              aria-label="Delete assistant"
+            >
+              <TrashIcon />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete assistant</AlertDialogTitle>
+              <AlertDialogDescription>
+                Remove this custom GPT configuration? This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={onDelete}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </CardFooter>
     </Card>
   )
 }

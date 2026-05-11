@@ -20,6 +20,7 @@ export type AssistantRule = "balanced" | "concise" | "detailed" | "ai"
 
 export interface AssistantInfo {
   id: string
+  name: string
   apiKeyId?: string
   rule: AssistantRule
   rulePrompt: string
@@ -56,6 +57,12 @@ async function getEncryptedUserStorage(storagePrefix: string) {
     storageKey: `${storagePrefix}-${session.user.login}`,
     secret: session.user.id,
   }
+}
+
+async function getAssistantsStorageKey() {
+  const session = await getSession()
+  if (!session?.user?.login) return null
+  return `assistants-${session.user.login}`
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -122,27 +129,34 @@ export const useAppStore = create<AppState>((set, get) => ({
   assistantsIsLoaded: false,
 
   assistantsLoadFromSession: async () => {
-    const ctx = await getEncryptedUserStorage("assistants")
-    if (!ctx) {
+    const storageKey = await getAssistantsStorageKey()
+    if (!storageKey) {
       set({ assistantsIsLoaded: true })
       return
     }
 
-    const stored = localStorage.getItem(ctx.storageKey)
+    const stored = localStorage.getItem(storageKey)
     if (!stored) {
       set({ assistantsIsLoaded: true })
       return
     }
 
-    const decrypted = await decryptData(stored, ctx.secret)
-    if (!decrypted) {
-      set({ assistantsIsLoaded: true })
-      return
-    }
-
     try {
-      const parsed = JSON.parse(decrypted) as AssistantInfo[]
-      set({ assistants: parsed, assistantsIsLoaded: true })
+      const parsed = JSON.parse(stored) as Partial<AssistantInfo>[]
+      const assistants: AssistantInfo[] = parsed
+        .filter((row): row is Partial<AssistantInfo> & { id: string } =>
+          typeof row?.id === "string"
+        )
+        .map((row) => ({
+          id: row.id,
+          name: typeof row.name === "string" ? row.name : "",
+          apiKeyId: row.apiKeyId,
+          rule: row.rule ?? "balanced",
+          rulePrompt: typeof row.rulePrompt === "string" ? row.rulePrompt : "",
+          instructions:
+            typeof row.instructions === "string" ? row.instructions : "",
+        }))
+      set({ assistants, assistantsIsLoaded: true })
     } catch {
       set({ assistantsIsLoaded: true })
     }
@@ -150,12 +164,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   assistantsSaveToSession: async () => {
     if (!get().assistantsIsLoaded) return
-    const ctx = await getEncryptedUserStorage("assistants")
-    if (!ctx) return
+    const storageKey = await getAssistantsStorageKey()
+    if (!storageKey) return
 
-    const data = JSON.stringify(get().assistants)
-    const encrypted = await encryptData(data, ctx.secret)
-    localStorage.setItem(ctx.storageKey, encrypted)
+    localStorage.setItem(storageKey, JSON.stringify(get().assistants))
   },
 
   assistantsAdd: async (assistant) => {

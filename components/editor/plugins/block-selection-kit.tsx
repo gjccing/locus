@@ -5,6 +5,8 @@ import { getPluginTypes, KEYS } from 'platejs';
 
 import { BlockSelection } from '@/components/ui/block-selection';
 
+import { BlockSelectionCopyFixPlugin } from '@/components/editor/plugins/block-selection-copy-fix';
+
 export const hasSelectableClass = ({
   attributes,
   className,
@@ -35,4 +37,5 @@ export const BlockSelectionKit = [
       },
     },
   })),
+  BlockSelectionCopyFixPlugin,
 ];

@@ -5,6 +5,7 @@ import { Plate, usePlateEditor } from "platejs/react"
 
 import { ContextEditorKit } from "@/components/editor/context-editor-kit"
 import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-placeholder-kit"
+import { BlockSelectionEnterCursorFix } from "@/components/editor/plugins/block-selection-enter-cursor-fix"
 import { Editor, EditorContainer } from "@/components/ui/editor"
 import { cn } from "@/lib/utils"
 
@@ -31,6 +32,7 @@ export default function ContextEditor({ className, contextId }: { className?: st
 
       <div className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
         <Plate editor={editor}>
+          <BlockSelectionEnterCursorFix />
           <EditorContainer variant="default">
             <Editor className="pb-20" variant="default" placeholder={CONTEXT_EDITOR_PLACEHOLDER} />
           </EditorContainer>

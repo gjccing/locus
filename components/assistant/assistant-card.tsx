@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useState } from "react"
+import { useId, useMemo, useState } from "react"
 import { TrashIcon } from "@primer/octicons-react"
 import {
   AlertDialog,
@@ -37,10 +37,10 @@ const CONTENT_SELECTION_OPTIONS: {
   value: ContentSelectionMode
   label: string
 }[] = [
-  { value: "balanced", label: "Balanced" },
-  { value: "concise", label: "Concise" },
-  { value: "detailed", label: "Detailed" },
-]
+    { value: "balanced", label: "Balanced" },
+    { value: "concise", label: "Concise" },
+    { value: "detailed", label: "Detailed" },
+  ]
 
 interface AssistantCardProps extends AssistantInfo {
   className?: string
@@ -78,7 +78,11 @@ export function AssistantCard({
   onUpdate,
 }: AssistantCardProps) {
   const baseId = useId()
-  const apiKeys = useAppStore((s) => s.apiKeys)
+  const allApiKeys = useAppStore((s) => s.apiKeys)
+  const apiKeys = useMemo(
+    () => allApiKeys.filter((k) => k.status === "passed"),
+    [allApiKeys]
+  )
   const [localName, setLocalName] = useState(name)
   const [localInstructions, setLocalInstructions] = useState(instructions)
 
@@ -120,9 +124,11 @@ export function AssistantCard({
             >
               <SelectValue
                 placeholder={
-                  apiKeys.length === 0
+                  allApiKeys.length === 0
                     ? "Add a model API key first"
-                    : "Select API key"
+                    : apiKeys.length === 0
+                      ? "Test an API key first (none passed yet)"
+                      : "Select API key"
                 }
               />
             </SelectTrigger>

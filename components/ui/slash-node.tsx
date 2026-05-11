@@ -5,8 +5,6 @@ import * as React from 'react';
 import type { PlateEditor, PlateElementProps } from 'platejs/react';
 
 import {
-  ChevronRightIcon,
-  Code2,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
@@ -14,7 +12,6 @@ import {
   ListOrdered,
   MinusIcon,
   PilcrowIcon,
-  Quote,
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
@@ -74,24 +71,6 @@ const basicBlockItems: Item[] = [
     keywords: ['ordered', 'ol', '1'],
     label: 'Numbered list',
     value: KEYS.ol,
-  },
-  {
-    icon: <ChevronRightIcon />,
-    keywords: ['collapsible', 'expandable'],
-    label: 'Toggle',
-    value: KEYS.toggle,
-  },
-  {
-    icon: <Code2 />,
-    keywords: ['```'],
-    label: 'Code block',
-    value: KEYS.codeBlock,
-  },
-  {
-    icon: <Quote />,
-    keywords: ['citation', 'blockquote', 'quote', '>'],
-    label: 'Blockquote',
-    value: KEYS.blockquote,
   },
   {
     icon: <MinusIcon />,

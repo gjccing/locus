@@ -24,7 +24,7 @@ interface SettingsSheetProps {
 
 export function SettingsSheet({ user }: SettingsSheetProps) {
   return (
-    <Sheet>
+    <Sheet defaultOpen={true}>
       <SheetTrigger asChild>
         <button className="cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
           <Avatar>

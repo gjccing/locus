@@ -53,7 +53,7 @@ export function AssistantList() {
           void addAssistant({
             id: crypto.randomUUID(),
             name: "",
-            contentSelection: "balanced",
+            contentSelection: "linear",
             instructions: "",
           })
         }

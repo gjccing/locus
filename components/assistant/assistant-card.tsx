@@ -37,10 +37,27 @@ const CONTENT_SELECTION_OPTIONS: {
   value: ContentSelectionMode
   label: string
 }[] = [
-    { value: "balanced", label: "Balanced" },
-    { value: "concise", label: "Concise" },
-    { value: "detailed", label: "Detailed" },
-  ]
+  { value: "backbone", label: "Backbone Mode" },
+  { value: "linear", label: "Linear Mode" },
+  { value: "full-scope", label: "Full Scope Mode" },
+  { value: "divider-partition", label: "Divider Partition Mode" },
+]
+
+const PROJECT_A_EXAMPLE = `# Project A
+* Goals
+  * Item 1
+* Progress
+## Phase 1
+text1
+### Details
+text2
+## Phase 2
+text3
+* Task A
+  * Subtask A-1
+---
+text4
+@assistant`
 
 interface AssistantCardProps extends AssistantInfo {
   className?: string
@@ -169,6 +186,21 @@ export function AssistantCard({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${baseId}-project-example`}>Example</Label>
+          <div
+            id={`${baseId}-project-example`}
+            aria-label="Example"
+            className="min-h-56 whitespace-pre rounded-md border bg-muted/20 px-3 py-2 font-mono text-xs text-foreground"
+          >
+            {PROJECT_A_EXAMPLE.split("\n").map((line, idx) => (
+              <div key={idx} data-line={idx + 1}>
+                {line || "\u00A0"}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">

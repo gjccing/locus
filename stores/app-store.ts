@@ -16,7 +16,11 @@ export interface APIKeyInfo {
 }
 
 /** How much / which content is gathered when building the prompt. */
-export type ContentSelectionMode = "balanced" | "concise" | "detailed"
+export type ContentSelectionMode =
+  | "backbone"
+  | "linear"
+  | "full-scope"
+  | "divider-partition"
 
 export interface AssistantInfo {
   id: string
@@ -143,7 +147,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       type StoredAssistantRow = Partial<AssistantInfo> & {
         id?: string
-        rule?: ContentSelectionMode | string
       }
       const parsed = JSON.parse(stored) as StoredAssistantRow[]
       const assistants: AssistantInfo[] = parsed
@@ -151,9 +154,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           typeof row?.id === "string"
         )
         .map((row) => {
-          const raw = row.contentSelection ?? row.rule
-          const contentSelection: ContentSelectionMode =
-            raw === "concise" || raw === "detailed" ? raw : "balanced"
+          const raw = row.contentSelection
+          const contentSelection: ContentSelectionMode = raw as ContentSelectionMode
           return {
             id: row.id,
             name: typeof row.name === "string" ? row.name : "",

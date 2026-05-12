@@ -31,7 +31,15 @@ export default function ContextEditor({ className, contextId }: { className?: st
       </p>
 
       <div className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
-        <Plate editor={editor}>
+        <Plate
+          editor={editor}
+          onValueChange={({ value }) => {
+            if (process.env.NODE_ENV !== "development") return
+            console.log(
+              `[dev-log][ContextEditor:${contextId}] plate value\n\n\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\`\n`
+            )
+          }}
+        >
           <BlockSelectionShadowKeyboardFix />
           <EditorContainer variant="default">
             <Editor className="pb-20" variant="default" placeholder={CONTEXT_EDITOR_PLACEHOLDER} />

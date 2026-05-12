@@ -6,7 +6,7 @@ import { AlignKit } from "@/components/editor/plugins/align-kit"
 import { AutoformatKit } from "@/components/editor/plugins/autoformat-kit"
 import { BasicBlocksKit } from "@/components/editor/plugins/basic-blocks-kit"
 import { BasicMarksKit } from "@/components/editor/plugins/basic-marks-kit"
-import { BlockMenuKit } from "@/components/editor/plugins/block-menu-kit"
+import { BlockSelectionKit } from "@/components/editor/plugins/block-selection-kit"
 import { BlockPlaceholderKit } from "@/components/editor/plugins/block-placeholder-kit"
 import { CodeBlockKit } from "@/components/editor/plugins/code-block-kit"
 import { DndKit } from "@/components/editor/plugins/dnd-kit"
@@ -24,9 +24,9 @@ import { SlashKit } from "@/components/editor/plugins/slash-kit"
 import { TableKit } from "@/components/editor/plugins/table-kit"
 import { ToggleKit } from "@/components/editor/plugins/toggle-kit"
 
-/** Notion-style: block menu, `/` (basic blocks), `@` mention, Markdown, DnD — no fixed/floating toolbars. */
+/** Notion-style: block selection / drag, `/` (basic blocks), `@` mention, Markdown, DnD — no fixed/floating toolbars. */
 export const ContextEditorKit = [
-  ...BlockMenuKit,
+  ...BlockSelectionKit,
   ...BasicBlocksKit,
   ...CodeBlockKit,
   ...TableKit,

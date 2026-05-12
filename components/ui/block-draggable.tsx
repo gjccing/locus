@@ -172,15 +172,7 @@ function Draggable(props: PlateElementProps) {
         contentEditable={false}
       />
 
-      <div
-        ref={nodeRef}
-        className="slate-blockWrapper flow-root"
-        onContextMenu={(event) =>
-          editor
-            .getApi(BlockSelectionPlugin)
-            .blockSelection.addOnContextMenu({ element, event })
-        }
-      >
+      <div ref={nodeRef} className="slate-blockWrapper flow-root">
         <MemoizedChildren>{children}</MemoizedChildren>
         <DropLine />
       </div>

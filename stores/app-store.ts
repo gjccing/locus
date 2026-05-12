@@ -15,18 +15,12 @@ export interface APIKeyInfo {
   status: ConfigStatus
 }
 
-/** How much / which content is gathered when building the prompt. */
-export type ContentSelectionMode =
-  | "backbone"
-  | "linear"
-  | "full-scope"
-  | "divider-partition"
-
 export interface AssistantInfo {
   id: string
   name: string
   apiKeyId?: string
-  contentSelection: ContentSelectionMode
+  /** Model id from the provider catalog (see `lib/mention-models.ts`). */
+  modelId?: string
   instructions: string
 }
 
@@ -153,18 +147,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         .filter((row): row is StoredAssistantRow & { id: string } =>
           typeof row?.id === "string"
         )
-        .map((row) => {
-          const raw = row.contentSelection
-          const contentSelection: ContentSelectionMode = raw as ContentSelectionMode
-          return {
-            id: row.id,
-            name: typeof row.name === "string" ? row.name : "",
-            apiKeyId: row.apiKeyId,
-            contentSelection,
-            instructions:
-              typeof row.instructions === "string" ? row.instructions : "",
-          }
-        })
+        .map((row) => ({
+          id: row.id,
+          name: typeof row.name === "string" ? row.name : "",
+          apiKeyId: row.apiKeyId,
+          modelId: typeof row.modelId === "string" ? row.modelId : undefined,
+          instructions:
+            typeof row.instructions === "string" ? row.instructions : "",
+        }))
       set({ assistants, assistantsIsLoaded: true })
     } catch {
       set({ assistantsIsLoaded: true })

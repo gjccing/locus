@@ -3,7 +3,7 @@ import type { AIProvider } from "@/stores/app-store"
 const VERCEL_GATEWAY_MODELS = "https://ai-gateway.vercel.sh/v1/models"
 const GROQ_MODELS = "https://api.groq.com/openai/v1/models"
 
-export const MENTION_MODELS_PER_PROVIDER = 5
+export const MENTION_MODELS_PER_PROVIDER = Infinity
 
 type GatewayModel = {
   id: string
@@ -37,7 +37,9 @@ export function gatewayOwnedBy(provider: AIProvider): string | null {
   }
 }
 
-export async function fetchGatewayCatalog(signal?: AbortSignal): Promise<GatewayModel[]> {
+export async function fetchGatewayCatalog(
+  signal?: AbortSignal
+): Promise<GatewayModel[]> {
   if (
     gatewayCatalogCache &&
     Date.now() - gatewayCatalogCache.at < GATEWAY_CACHE_MS

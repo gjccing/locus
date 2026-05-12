@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { TrashIcon } from "@primer/octicons-react"
 import {
   AlertDialog,
@@ -25,39 +25,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  fetchGatewayCatalog,
+  fetchGroqLatestModels,
+  gatewayOwnedBy,
+  MENTION_MODELS_PER_PROVIDER,
+  pickLatestGatewayModels,
+} from "@/lib/mention-models"
 import { cn } from "@/lib/utils"
-import type {
-  AIProvider,
-  AssistantInfo,
-  ContentSelectionMode,
-} from "@/stores/app-store"
+import type { AIProvider, AssistantInfo } from "@/stores/app-store"
 import { useAppStore } from "@/stores/app-store"
-
-const CONTENT_SELECTION_OPTIONS: {
-  value: ContentSelectionMode
-  label: string
-}[] = [
-  { value: "backbone", label: "Backbone Mode" },
-  { value: "linear", label: "Linear Mode" },
-  { value: "full-scope", label: "Full Scope Mode" },
-  { value: "divider-partition", label: "Divider Partition Mode" },
-]
-
-const PROJECT_A_EXAMPLE = `# Project A
-* Goals
-  * Item 1
-* Progress
-## Phase 1
-text1
-### Details
-text2
-## Phase 2
-text3
-* Task A
-  * Subtask A-1
----
-text4
-@assistant`
 
 interface AssistantCardProps extends AssistantInfo {
   className?: string
@@ -85,11 +62,26 @@ function apiKeyLabel(
   return provider ? `${provider} · ${preview}` : `Key · ${preview}`
 }
 
+function modelSelectPlaceholder(args: {
+  noApiKey: boolean
+  noProvider: boolean
+  loading: boolean
+  error: string | null
+  empty: boolean
+}) {
+  if (args.noApiKey) return "Select an API key first"
+  if (args.noProvider) return "This API key has no provider"
+  if (args.loading) return "Loading models…"
+  if (args.error) return args.error
+  if (args.empty) return "No models for this provider"
+  return "Select model"
+}
+
 export function AssistantCard({
   className,
   name,
   apiKeyId,
-  contentSelection,
+  modelId,
   instructions,
   onDelete,
   onUpdate,
@@ -106,6 +98,93 @@ export function AssistantCard({
   const validKeyIds = new Set(apiKeys.map((k) => k.id))
   const selectKeyId =
     apiKeyId && validKeyIds.has(apiKeyId) ? apiKeyId : undefined
+
+  const selectedKey = useMemo(
+    () => apiKeys.find((k) => k.id === selectKeyId),
+    [apiKeys, selectKeyId]
+  )
+
+  const [models, setModels] = useState<{ id: string; label: string }[]>([])
+  const [modelsLoading, setModelsLoading] = useState(false)
+  const [modelsError, setModelsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const provider = selectedKey?.provider
+    const token = selectedKey?.token?.trim()
+    if (!provider || !token) {
+      setModels([])
+      setModelsLoading(false)
+      setModelsError(null)
+      return
+    }
+
+    const ac = new AbortController()
+
+    ;(async () => {
+      setModelsLoading(true)
+      setModelsError(null)
+
+      try {
+        let list: { id: string; label: string }[]
+
+        if (provider === "Groq") {
+          list = await fetchGroqLatestModels(
+            token,
+            MENTION_MODELS_PER_PROVIDER,
+            ac.signal
+          )
+        } else {
+          const ownedBy = gatewayOwnedBy(provider)
+          if (!ownedBy) {
+            list = []
+          } else {
+            const catalog = await fetchGatewayCatalog(ac.signal)
+            list = pickLatestGatewayModels(
+              catalog,
+              ownedBy,
+              MENTION_MODELS_PER_PROVIDER
+            )
+          }
+        }
+
+        if (!ac.signal.aborted) {
+          setModels(list)
+        }
+      } catch (e) {
+        if (!ac.signal.aborted) {
+          setModels([])
+          setModelsError(
+            e instanceof Error ? e.message : "Could not load models"
+          )
+        }
+      } finally {
+        if (!ac.signal.aborted) {
+          setModelsLoading(false)
+        }
+      }
+    })()
+
+    return () => ac.abort()
+  }, [selectedKey?.id, selectedKey?.provider, selectedKey?.token])
+
+  useEffect(() => {
+    if (modelsLoading || models.length === 0) return
+    if (modelId && !models.some((m) => m.id === modelId)) {
+      onUpdate?.({ modelId: undefined })
+    }
+  }, [modelId, models, modelsLoading, onUpdate])
+
+  const selectModelId =
+    modelId && models.some((m) => m.id === modelId) ? modelId : undefined
+
+  const noApiKey = !selectKeyId
+  const noProvider = Boolean(selectKeyId && !selectedKey?.provider)
+  const modelSelectDisabled =
+    noApiKey ||
+    noProvider ||
+    modelsLoading ||
+    Boolean(modelsError) ||
+    models.length === 0
 
   return (
     <Card size="sm" className={cn("shrink-0 bg-transparent", className)}>
@@ -130,7 +209,7 @@ export function AssistantCard({
           <Select
             value={selectKeyId}
             onValueChange={(value) => {
-              onUpdate?.({ apiKeyId: value })
+              onUpdate?.({ apiKeyId: value, modelId: undefined })
             }}
             disabled={apiKeys.length === 0}
           >
@@ -160,47 +239,37 @@ export function AssistantCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-content-selection`}>
-            Content selection
-          </Label>
+          <Label htmlFor={`${baseId}-model`}>Model</Label>
           <Select
-            value={contentSelection}
+            value={selectModelId}
             onValueChange={(value) => {
-              onUpdate?.({
-                contentSelection: value as ContentSelectionMode,
-              })
+              onUpdate?.({ modelId: value })
             }}
+            disabled={modelSelectDisabled}
           >
             <SelectTrigger
-              id={`${baseId}-content-selection`}
+              id={`${baseId}-model`}
               size="sm"
               className="w-full min-w-0"
             >
-              <SelectValue placeholder="How content is chosen for the prompt" />
+              <SelectValue
+                placeholder={modelSelectPlaceholder({
+                  noApiKey,
+                  noProvider,
+                  loading: modelsLoading,
+                  error: modelsError,
+                  empty: !modelsLoading && !modelsError && models.length === 0,
+                })}
+              />
             </SelectTrigger>
             <SelectContent>
-              {CONTENT_SELECTION_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {models.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-project-example`}>Example</Label>
-          <div
-            id={`${baseId}-project-example`}
-            aria-label="Example"
-            className="min-h-56 whitespace-pre rounded-md border bg-muted/20 px-3 py-2 font-mono text-xs text-foreground"
-          >
-            {PROJECT_A_EXAMPLE.split("\n").map((line, idx) => (
-              <div key={idx} data-line={idx + 1}>
-                {line || "\u00A0"}
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col gap-2">

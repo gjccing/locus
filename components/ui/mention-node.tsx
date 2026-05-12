@@ -179,11 +179,15 @@ function MentionComboboxModels({
             catalog = await fetchGatewayCatalog(ac.signal);
           }
 
-          const models = pickLatestGatewayModels(
+          const gatewayModels = pickLatestGatewayModels(
             catalog,
             ownedBy,
             MENTION_MODELS_PER_PROVIDER
           );
+          const models = gatewayModels.map((m) => ({
+            id: m.id,
+            label: m.id,
+          }));
 
           if (models.length > 0) {
             nextGroups.push({ provider, models });

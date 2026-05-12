@@ -120,49 +120,52 @@ export function AssistantCard({
 
     const ac = new AbortController()
 
-    ;(async () => {
-      setModelsLoading(true)
-      setModelsError(null)
+      ; (async () => {
+        setModelsLoading(true)
+        setModelsError(null)
 
-      try {
-        let list: { id: string; label: string }[]
+        try {
+          let list: { id: string; label: string }[]
 
-        if (provider === "Groq") {
-          list = await fetchGroqLatestModels(
-            token,
-            MENTION_MODELS_PER_PROVIDER,
-            ac.signal
-          )
-        } else {
-          const ownedBy = gatewayOwnedBy(provider)
-          if (!ownedBy) {
-            list = []
+          if (provider === "Groq") {
+            list = await fetchGroqLatestModels(
+              token,
+              MENTION_MODELS_PER_PROVIDER,
+              ac.signal
+            )
           } else {
-            const catalog = await fetchGatewayCatalog(ac.signal)
-            list = pickLatestGatewayModels(
-              catalog,
-              ownedBy,
-              MENTION_MODELS_PER_PROVIDER
+            const ownedBy = gatewayOwnedBy(provider)
+            if (!ownedBy) {
+              list = []
+            } else {
+              const catalog = await fetchGatewayCatalog(ac.signal)
+              list = pickLatestGatewayModels(
+                catalog,
+                ownedBy,
+                MENTION_MODELS_PER_PROVIDER
+              ).map((m) => ({
+                id: m.id,
+                label: m.id,
+              }))
+            }
+          }
+
+          if (!ac.signal.aborted) {
+            setModels(list)
+          }
+        } catch (e) {
+          if (!ac.signal.aborted) {
+            setModels([])
+            setModelsError(
+              e instanceof Error ? e.message : "Could not load models"
             )
           }
+        } finally {
+          if (!ac.signal.aborted) {
+            setModelsLoading(false)
+          }
         }
-
-        if (!ac.signal.aborted) {
-          setModels(list)
-        }
-      } catch (e) {
-        if (!ac.signal.aborted) {
-          setModels([])
-          setModelsError(
-            e instanceof Error ? e.message : "Could not load models"
-          )
-        }
-      } finally {
-        if (!ac.signal.aborted) {
-          setModelsLoading(false)
-        }
-      }
-    })()
+      })()
 
     return () => ac.abort()
   }, [selectedKey?.id, selectedKey?.provider, selectedKey?.token])

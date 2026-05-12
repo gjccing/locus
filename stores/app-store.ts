@@ -40,7 +40,10 @@ type AssistantsSlice = {
   assistantsLoadFromSession: () => Promise<void>
   assistantsSaveToSession: () => Promise<void>
   assistantsAdd: (assistant: AssistantInfo) => Promise<void>
-  assistantsUpdate: (id: string, updates: Partial<AssistantInfo>) => Promise<void>
+  assistantsUpdate: (
+    id: string,
+    updates: Partial<AssistantInfo>
+  ) => Promise<void>
   assistantsDelete: (id: string) => Promise<void>
 }
 
@@ -144,8 +147,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
       const parsed = JSON.parse(stored) as StoredAssistantRow[]
       const assistants: AssistantInfo[] = parsed
-        .filter((row): row is StoredAssistantRow & { id: string } =>
-          typeof row?.id === "string"
+        .filter(
+          (row): row is StoredAssistantRow & { id: string } =>
+            typeof row?.id === "string"
         )
         .map((row) => ({
           id: row.id,

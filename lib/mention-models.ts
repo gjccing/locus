@@ -5,7 +5,7 @@ const GROQ_MODELS = "https://api.groq.com/openai/v1/models"
 
 export const MENTION_MODELS_PER_PROVIDER = Infinity
 
-type GatewayModel = {
+export type GatewayModel = {
   id: string
   name?: string
   owned_by?: string
@@ -62,7 +62,7 @@ export function pickLatestGatewayModels(
   catalog: GatewayModel[],
   ownedBy: string,
   limit: number
-): { id: string; label: string }[] {
+): GatewayModel[] {
   const filtered = catalog.filter(
     (m) =>
       m.owned_by === ownedBy &&
@@ -73,15 +73,12 @@ export function pickLatestGatewayModels(
   filtered.sort((a, b) => (b.released ?? 0) - (a.released ?? 0))
 
   const seen = new Set<string>()
-  const out: { id: string; label: string }[] = []
+  const out: GatewayModel[] = []
 
   for (const m of filtered) {
     if (seen.has(m.id)) continue
     seen.add(m.id)
-    out.push({
-      id: m.id,
-      label: m.name ? `${m.name} · ${m.id}` : m.id,
-    })
+    out.push(m)
     if (out.length >= limit) break
   }
 

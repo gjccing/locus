@@ -276,7 +276,7 @@ export function AssistantCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`${baseId}-instructions`}>Assistant instructions</Label>
+          <Label htmlFor={`${baseId}-instructions`}>Instructions</Label>
           <Textarea
             id={`${baseId}-instructions`}
             value={localInstructions}
@@ -286,7 +286,7 @@ export function AssistantCard({
                 onUpdate?.({ instructions: localInstructions })
               }
             }}
-            placeholder="System-style instructions for this custom GPT…"
+            placeholder="Optional. Describe how this assistant should answer—tone, topics, format, or rules to always follow."
             className="min-h-28"
           />
         </div>

@@ -44,6 +44,7 @@
     "@platejs/selection": "^53.0.0",
     "@platejs/slash-command": "^53.0.0",
     "@platejs/table": "^53.0.0",
+    "@platejs/toc": "^53.0.0",
     "@platejs/toggle": "^53.0.0",
     "@primer/octicons-react": "^19.23.1",
     "@radix-ui/react-accordion": "^1.2.12",

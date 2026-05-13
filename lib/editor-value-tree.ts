@@ -1,4 +1,4 @@
-import type { Value, TElement } from "platejs"
+import type { TElement } from "platejs"
 
 type LevelRelativeProps = {
   type: string

@@ -5,7 +5,6 @@ export const BaseIndentKit = [
   BaseIndentPlugin.configure({
     inject: {
       targetPlugins: [
-        ...KEYS.heading,
         KEYS.p,
         KEYS.blockquote,
         KEYS.codeBlock,
@@ -13,6 +12,7 @@ export const BaseIndentKit = [
       ],
     },
     options: {
+      indentMax: 9,
       offset: 24,
     },
   }),

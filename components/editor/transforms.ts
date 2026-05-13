@@ -181,6 +181,9 @@ export const setBlockType = (
         return setBlockMap[type](editor, type, entry);
       }
       if (node.type !== type) {
+        if (KEYS.heading.includes(type as (typeof KEYS.heading)[number])) {
+          editor.tf.unsetNodes('indent', { at: path });
+        }
         editor.tf.setNodes({ type }, { at: path });
       }
     };

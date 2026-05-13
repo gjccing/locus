@@ -2,12 +2,15 @@
 
 import * as React from 'react';
 
-import type { PlateEditor, PlateElementProps } from 'platejs/react';
+import type { PlateElementProps } from 'platejs/react';
 
 import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  Heading4Icon,
+  Heading5Icon,
+  Heading6Icon,
   ListIcon,
   ListOrdered,
   MinusIcon,
@@ -59,6 +62,24 @@ const basicBlockItems: Item[] = [
     keywords: ['subtitle', 'h3'],
     label: 'Heading 3',
     value: KEYS.h3,
+  },
+  {
+    icon: <Heading4Icon />,
+    keywords: ['h4'],
+    label: 'Heading 4',
+    value: KEYS.h4,
+  },
+  {
+    icon: <Heading5Icon />,
+    keywords: ['h5'],
+    label: 'Heading 5',
+    value: KEYS.h5,
+  },
+  {
+    icon: <Heading6Icon />,
+    keywords: ['h6'],
+    label: 'Heading 6',
+    value: KEYS.h6,
   },
   {
     icon: <ListIcon />,

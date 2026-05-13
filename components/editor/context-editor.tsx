@@ -1,5 +1,6 @@
 "use client"
 
+import { serializeMd } from "@platejs/markdown"
 import type { Value } from "platejs"
 import { Plate, usePlateEditor } from "platejs/react"
 
@@ -8,6 +9,7 @@ import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-pl
 import { BlockSelectionShadowKeyboardFix } from "@/components/editor/plugins/block-selection-shadow-keyboard-fix"
 import { Editor, EditorContainer } from "@/components/ui/editor"
 import { cn } from "@/lib/utils"
+import { buildTreeFromValue } from "@/lib/editor-value-converters"
 
 const initialValue: Value = [
   {
@@ -38,6 +40,10 @@ export default function ContextEditor({ className, contextId }: { className?: st
             console.log(
               `[dev-log][ContextEditor:${contextId}] plate value\n\n\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\`\n`
             )
+            const md = serializeMd(editor)
+            console.log(`[dev-log][ContextEditor:${contextId}] markdown\n\n${md}\n`)
+            const tree = buildTreeFromValue(value)
+            console.log(`[dev-log][ContextEditor:${contextId}] tree`, tree)
           }}
         >
           <BlockSelectionShadowKeyboardFix />

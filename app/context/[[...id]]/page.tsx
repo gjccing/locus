@@ -15,20 +15,15 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
 
   return (
 
-    <main className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-secondary">
-      <div className="sticky top-0 z-50 flex w-full shrink-0 justify-between px-4 pt-4 sm:pr-6">
-        <SidebarTrigger />
-
-        {user && (
-          <SettingsSheet user={user} />
-        )}
-      </div>
-
-      <div className="absolute top-0 left-0 right-0 bottom-0 min-h-0 flex-1 overflow-y-auto">
-        <div className="flex min-h-full flex-col justify-end items-center">
-          <ContextEditor contextId={contextId} />
-        </div>
-      </div>
+    <main className="relative h-full w-full overflow-hidden">
+      <SidebarTrigger className="absolute top-4 left-4 sm:top-6 sm:left-6" />
+      {user && (
+        <SettingsSheet
+          classNameOfTrigger="absolute top-4 right-4 sm:top-6 sm:right-6"
+          user={user}
+        />
+      )}
+      <ContextEditor contextId={contextId} />
     </main>
   )
 }

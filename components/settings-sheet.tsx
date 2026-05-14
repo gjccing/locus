@@ -14,19 +14,27 @@ import { Button } from "@/components/ui/button"
 import { SignInIcon } from "@primer/octicons-react"
 import { ApiKeyList } from "@/components/api-key/api-key-list"
 import { AssistantList } from "@/components/assistant/assistant-list"
+import { cn } from "@/lib/utils"
 
 interface SettingsSheetProps {
+  classNameOfTrigger?: string
   user: {
     name?: string | null
     image?: string | null
   }
 }
 
-export function SettingsSheet({ user }: SettingsSheetProps) {
+export function SettingsSheet({
+  classNameOfTrigger,
+  user
+}: SettingsSheetProps) {
   return (
     <Sheet defaultOpen={true}>
       <SheetTrigger asChild>
-        <button className="cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+        <button className={cn(
+          "cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          classNameOfTrigger
+        )}>
           <Avatar>
             <AvatarImage
               src={user.image ?? undefined}

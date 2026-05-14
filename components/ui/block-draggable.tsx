@@ -172,7 +172,7 @@ function Draggable(props: PlateElementProps) {
         contentEditable={false}
       />
 
-      <div ref={nodeRef} className="slate-blockWrapper flow-root">
+      <div ref={nodeRef} className="slate-blockWrapper flow-root bg-white px-1">
         <MemoizedChildren>{children}</MemoizedChildren>
         <DropLine />
       </div>

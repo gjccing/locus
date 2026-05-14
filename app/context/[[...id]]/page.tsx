@@ -15,7 +15,8 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
 
   return (
 
-    <main className="relative h-full w-full overflow-hidden">
+    <main className="relative h-full w-full overflow-hidden bg-secondary">
+      <ContextEditor contextId={contextId} />
       <SidebarTrigger className="absolute top-4 left-4 sm:top-6 sm:left-6" />
       {user && (
         <SettingsSheet
@@ -23,7 +24,6 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
           user={user}
         />
       )}
-      <ContextEditor contextId={contextId} />
     </main>
   )
 }

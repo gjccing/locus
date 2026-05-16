@@ -10,7 +10,7 @@ import {
   streamInsertChunk,
   useChatChunk,
 } from '@platejs/ai/react';
-import { ElementApi, getPluginType, KEYS, PathApi } from 'platejs';
+import { ElementApi, getPluginType, KEYS, PathApi, type Path } from 'platejs';
 import { type PlateEditor, usePluginOption } from 'platejs/react';
 
 import { AILoadingBar, AIMenu } from '@/components/ui/ai-menu';
@@ -20,14 +20,90 @@ import { useChat } from '../use-chat';
 import { CursorOverlayKit } from './cursor-overlay-kit';
 import { MarkdownKit } from './markdown-kit';
 
+const insertStreamStartPathByEditor = new WeakMap<PlateEditor, Path>();
+
+function indentAIResponseBlocks(
+  editor: PlateEditor,
+  streamBlockPath: Path | null
+) {
+  const endIndex = streamBlockPath?.[0];
+  if (endIndex === undefined || endIndex < 0) return;
+
+  const startPath = insertStreamStartPathByEditor.get(editor);
+  const startIndex = startPath?.[0] ?? endIndex;
+
+  const mentionEntry = editor.api.node([Math.max(0, startIndex - 1)]);
+  let targetIndent = 1;
+
+  if (mentionEntry && ElementApi.isElement(mentionEntry[0])) {
+    const mentionIndent =
+      typeof mentionEntry[0].indent === 'number' ? mentionEntry[0].indent : 0;
+    targetIndent = Math.min(mentionIndent + 1, 9);
+  }
+
+  const aiChatType = getPluginType(editor, KEYS.aiChat);
+
+  editor.tf.withoutNormalizing(() => {
+    for (let i = startIndex; i <= endIndex; i++) {
+      const entry = editor.api.node([i]);
+      if (!entry || !ElementApi.isElement(entry[0])) continue;
+      if (entry[0].type === aiChatType) continue;
+
+      editor.tf.setNodes({ indent: targetIndent }, { at: [i] });
+    }
+  });
+
+  insertStreamStartPathByEditor.delete(editor);
+}
+
+function focusBlockBelowAIResponse(
+  editor: PlateEditor,
+  streamBlockPath: Path | null
+) {
+  const streamRootIndex = streamBlockPath?.[0];
+  const belowIndex =
+    streamRootIndex !== undefined && streamRootIndex >= 0
+      ? streamRootIndex + 1
+      : editor.children.length;
+
+  const belowPath: Path = [belowIndex];
+
+  if (!editor.api.node(belowPath)) {
+    editor.tf.insertNodes(
+      {
+        children: [{ text: '' }],
+        type: editor.getType(KEYS.p),
+      },
+      { at: belowPath }
+    );
+  }
+
+  const start = editor.api.start(belowPath);
+  if (!start) return;
+
+  editor.tf.select({ anchor: start, focus: start });
+  editor.tf.focus();
+  editor.api.scrollIntoView(start, {
+    block: 'center',
+    behavior: 'smooth',
+  });
+}
+
 /** Commit streamed insert text to the document (do not undo on finish). */
 function finalizeInsertStream(editor: PlateEditor) {
+  const streamBlockPath = editor.getOption(AIChatPlugin, '_blockPath') as
+    | Path
+    | null;
+
   const ai = editor.getTransforms(BaseAIPlugin).ai;
 
   ai.acceptPreview();
   ai.removeMarks();
   editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
   editor.setOption(AIChatPlugin, 'open', false);
+
+  indentAIResponseBlocks(editor, streamBlockPath);
+  focusBlockBelowAIResponse(editor, streamBlockPath);
 }
 
 export const aiChatPlugin = AIChatPlugin.extend({
@@ -51,8 +127,10 @@ export const aiChatPlugin = AIChatPlugin.extend({
     useChatChunk({
       onChunk: ({ chunk, isFirst, nodes, text: content }) => {
         if (isFirst && mode === 'insert') {
-          const { startBlock, startInEmptyParagraph } =
+          const { path, startBlock, startInEmptyParagraph } =
             getInsertPreviewStart(editor);
+
+          insertStreamStartPathByEditor.set(editor, path);
 
           editor.getTransforms(BaseAIPlugin).ai.beginPreview({
             originalBlocks:

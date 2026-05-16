@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
+
+export const metadata = {
+  title: "Context",
+}
 import { BootstrapStore } from "@/components/bootstrap-store"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { ContextSidebar } from "@/components/context-sidebar"

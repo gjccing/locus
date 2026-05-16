@@ -22,11 +22,13 @@ export function AILeaf(props: PlateTextProps) {
   return (
     <PlateText
       className={cn(
-        'border-b-2 border-b-purple-100 bg-purple-50 text-purple-800',
-        'transition-all duration-200 ease-in-out',
+        'rounded-sm bg-purple-50/90 text-purple-950',
+        'shadow-[inset_0_-2px_0_0] shadow-purple-200/80',
+        'transition-[background-color,box-shadow] duration-200 ease-in-out',
+        'dark:bg-purple-950/40 dark:text-purple-100 dark:shadow-purple-800/50',
         isLast &&
           streaming &&
-          'after:ml-1.5 after:inline-block after:h-3 after:w-3 after:rounded-full after:bg-primary after:align-middle after:content-[""]'
+          'after:ml-1.5 after:inline-block after:h-3 after:w-3 after:animate-pulse after:rounded-full after:bg-purple-500 after:align-middle after:content-[""] dark:after:bg-purple-400'
       )}
       {...props}
     />

@@ -48,6 +48,9 @@ ${contextMd}
 <Document>
 </Document>`;
 
+  // open must be true before submit so withAIChat does not strip ai marks on normalize.
+  editor.setOption(AIChatPlugin, 'open', true);
+
   void editor.getApi(AIChatPlugin).aiChat.submit('', {
     mode: 'insert',
     toolName: 'generate',

@@ -64,6 +64,8 @@ export const aiChatPlugin = AIChatPlugin.extend({
               }
             );
           });
+          // Keep AI marks during insert streaming (withAIChat strips them when open is false).
+          editor.setOption(AIChatPlugin, 'open', true);
           editor.setOption(AIChatPlugin, 'streaming', true);
         }
 

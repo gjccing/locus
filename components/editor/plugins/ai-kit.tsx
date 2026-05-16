@@ -89,6 +89,24 @@ function focusBlockBelowAIResponse(
   });
 }
 
+/** Undo partial insert streaming when the AI request fails. */
+export function rollbackInsertStreamOnError(editor: PlateEditor) {
+  insertStreamStartPathByEditor.delete(editor);
+  editor.setOption(AIChatPlugin, 'streaming', false);
+  editor.setOption(AIChatPlugin, '_blockPath', null);
+  editor.setOption(AIChatPlugin, '_blockChunks', '');
+
+  const ai = editor.getTransforms(BaseAIPlugin).ai;
+
+  if (ai.hasPreview()) {
+    ai.cancelPreview();
+  }
+
+  ai.undo();
+  editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
+  editor.setOption(AIChatPlugin, 'open', false);
+}
+
 /** Commit streamed insert text to the document (do not undo on finish). */
 function finalizeInsertStream(editor: PlateEditor) {
   const streamBlockPath = editor.getOption(AIChatPlugin, '_blockPath') as
@@ -184,6 +202,17 @@ export const aiChatPlugin = AIChatPlugin.extend({
         }
       },
       onFinish: () => {
+        const chat = editor.getOption(AIChatPlugin, 'chat');
+        const failed = chat?.status === 'error';
+
+        if (failed) {
+          if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
+            rollbackInsertStreamOnError(editor);
+          }
+          editor.getApi(AIChatPlugin).aiChat.stop();
+          return;
+        }
+
         if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
           finalizeInsertStream(editor);
         }

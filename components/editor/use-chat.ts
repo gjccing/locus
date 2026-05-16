@@ -18,7 +18,14 @@ import { type UIMessage, DefaultChatTransport } from 'ai';
 import { type TNode, KEYS, nanoid, NodeApi, TextApi } from 'platejs';
 import { type PlateEditor, useEditorRef, usePluginOption } from 'platejs/react';
 
-import { aiChatPlugin } from '@/components/editor/plugins/ai-kit';
+import {
+  aiChatPlugin,
+  rollbackInsertStreamOnError,
+} from '@/components/editor/plugins/ai-kit';
+import {
+  parseApiErrorMessage,
+  showAIChatError,
+} from '@/lib/ai-chat-error';
 
 import { discussionPlugin } from './plugins/discussion-kit';
 import { withAIBatch } from '@platejs/ai';
@@ -54,11 +61,9 @@ export type ChatMessage = UIMessage<{}, MessageDataPart>;
 
 function createChatTransport({
   api,
-  abortControllerRef,
   editor,
 }: {
   api: string;
-  abortControllerRef: React.RefObject<AbortController | null>;
   editor: PlateEditor;
 }) {
   return new DefaultChatTransport({
@@ -116,78 +121,19 @@ function createChatTransport({
       });
 
       if (!res.ok) {
-        let sample: 'comment' | 'markdown' | 'mdx' | 'table' | null = null;
+        const message = await parseApiErrorMessage(
+          res,
+          `AI request failed (${res.status})`
+        );
 
-        try {
-          const body = JSON.parse(init?.body as string);
-          const content = body.messages
-            .at(-1)
-            .parts.find((p: any) => p.type === 'text')?.text;
-
-          if (content.includes('Generate a markdown sample')) {
-            sample = 'markdown';
-          } else if (content.includes('Generate a mdx sample')) {
-            sample = 'mdx';
-          } else if (content.includes('comment')) {
-            sample = 'comment';
-          }
-
-          // Detect table editing by checking if multiple table cells are selected
-          // Single cell selection should use normal edit flow, only multi-cell uses table tool
-          if (!sample) {
-            // First check: selectedCells from TablePlugin (cell selection mode)
-            const selectedCells =
-              editor.getOption({ key: KEYS.table }, 'selectedCells') || [];
-
-            if (selectedCells.length > 1) {
-              sample = 'table';
-            }
-            // Second check: selection range spans multiple cells
-            else if (body.ctx?.children && body.ctx?.selection) {
-              const { selection, children } = body.ctx;
-              const anchorPath = selection.anchor?.path;
-              const focusPath = selection.focus?.path;
-
-              if (anchorPath && anchorPath.length >= 3) {
-                const rootIndex = anchorPath[0];
-                const rootNode = children[rootIndex];
-
-                if (rootNode?.type === 'table') {
-                  // Cell path is at index 2 (table -> row -> cell)
-                  const anchorCellPath = anchorPath.slice(0, 3).join(',');
-                  const focusCellPath = focusPath?.slice(0, 3).join(',');
-
-                  // Only use table mock if anchor and focus are in different cells
-                  if (focusCellPath && anchorCellPath !== focusCellPath) {
-                    sample = 'table';
-                  }
-                }
-              }
-            }
-          }
-        } catch {
-          sample = null;
+        if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
+          rollbackInsertStreamOnError(editor);
         }
 
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
-
-        await new Promise((resolve) => setTimeout(resolve, 400));
-
-        const stream = fakeStreamText({
-          editor,
-          sample,
-          signal: abortController.signal,
+        return new Response(JSON.stringify({ error: message }), {
+          status: res.status,
+          headers: { 'Content-Type': 'application/json' },
         });
-
-        const response = new Response(stream, {
-          headers: {
-            Connection: 'keep-alive',
-            'Content-Type': 'text/plain',
-          },
-        });
-
-        return response;
       }
 
       return res;
@@ -199,20 +145,10 @@ export const useChat = () => {
   const editor = useEditorRef();
   const options = usePluginOption(aiChatPlugin, 'chatOptions');
 
-  // remove when you implement the route /api/ai/command
-  const abortControllerRef = React.useRef<AbortController | null>(null);
-  const _abortFakeStream = React.useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-  }, []);
-
   const transport = React.useMemo(
     () =>
       createChatTransport({
         api: options.api || '/api/ai/command',
-        abortControllerRef,
         editor,
       }),
     [editor, options.api]
@@ -221,6 +157,15 @@ export const useChat = () => {
   const baseChat = useBaseChat<ChatMessage>({
     id: 'editor',
     transport,
+    onError(error) {
+      const message =
+        error instanceof Error ? error.message : 'AI request failed';
+      showAIChatError(message);
+
+      if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
+        rollbackInsertStreamOnError(editor);
+      }
+    },
     onData(data) {
       if (data.type === 'data-toolName') {
         editor.setOption(AIChatPlugin, 'toolName', data.data as ToolName);
@@ -313,20 +258,15 @@ export const useChat = () => {
     ...options,
   });
 
-  const chat = {
-    ...baseChat,
-    _abortFakeStream,
-  };
-
   React.useEffect(() => {
-    editor.setOption(AIChatPlugin, 'chat', chat as any);
+    editor.setOption(AIChatPlugin, 'chat', baseChat as any);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chat.status, chat.messages, chat.error, _abortFakeStream]);
+  }, [baseChat.status, baseChat.messages, baseChat.error]);
 
-  return chat;
+  return baseChat;
 };
 
-// Used for testing. Remove it after implementing useChat api.
+// Legacy demo stream helpers (unused by /api/ai/command).
 const fakeStreamText = ({
   chunkCount = 10,
   editor,

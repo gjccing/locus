@@ -29,7 +29,7 @@ export function SettingsSheet({
   user
 }: SettingsSheetProps) {
   return (
-    <Sheet defaultOpen={true}>
+    <Sheet>
       <SheetTrigger asChild>
         <button className={cn(
           "cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",

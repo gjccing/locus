@@ -11,7 +11,7 @@ import {
   useChatChunk,
 } from '@platejs/ai/react';
 import { ElementApi, getPluginType, KEYS, PathApi } from 'platejs';
-import { usePluginOption } from 'platejs/react';
+import { type PlateEditor, usePluginOption } from 'platejs/react';
 
 import { AILoadingBar, AIMenu } from '@/components/ui/ai-menu';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
@@ -19,6 +19,16 @@ import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { useChat } from '../use-chat';
 import { CursorOverlayKit } from './cursor-overlay-kit';
 import { MarkdownKit } from './markdown-kit';
+
+/** Commit streamed insert text to the document (do not undo on finish). */
+function finalizeInsertStream(editor: PlateEditor) {
+  const ai = editor.getTransforms(BaseAIPlugin).ai;
+
+  ai.acceptPreview();
+  ai.removeMarks();
+  editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
+  editor.setOption(AIChatPlugin, 'open', false);
+}
 
 export const aiChatPlugin = AIChatPlugin.extend({
   options: {
@@ -96,6 +106,10 @@ export const aiChatPlugin = AIChatPlugin.extend({
         }
       },
       onFinish: () => {
+        if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
+          finalizeInsertStream(editor);
+        }
+
         editor.getApi(AIChatPlugin).aiChat.stop();
       },
     });

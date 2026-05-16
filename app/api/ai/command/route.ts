@@ -33,13 +33,20 @@ import {
 } from './prompt';
 
 export async function POST(req: NextRequest) {
-  const {
-    apiKey: key,
-    ctx,
-    messages: messagesRaw,
-    model,
-    provider,
-  } = await req.json();
+  const payload = await req.json();
+  const requestBody = payload.body ?? {};
+  const key = payload.apiKey ?? requestBody.apiKey;
+  const model = payload.model ?? requestBody.model;
+  const provider = payload.provider ?? requestBody.provider;
+  const messagesRaw = payload.messages;
+  const ctx = payload.ctx ?? requestBody.ctx;
+
+  if (!ctx?.children) {
+    return NextResponse.json(
+      { error: 'Missing editor context (ctx).' },
+      { status: 400 }
+    );
+  }
 
   const { children, selection, toolName: toolNameParam } = ctx;
 

@@ -67,11 +67,27 @@ function createChatTransport({
     fetch: (async (input, init) => {
       const bodyOptions = editor.getOptions(aiChatPlugin).chatOptions?.body;
 
-      const initBody = JSON.parse(init?.body as string);
+      const initBody = JSON.parse(init?.body as string) as Record<
+        string,
+        unknown
+      > & {
+        body?: Record<string, unknown>;
+      };
+      const extraBody = (bodyOptions as { body?: Record<string, unknown> })
+        .body;
 
       const body = {
         ...initBody,
         ...bodyOptions,
+        ...(initBody.body || extraBody
+          ? {
+              body: {
+                ...initBody.body,
+                ...extraBody,
+                ctx: initBody.body?.ctx ?? extraBody?.ctx,
+              },
+            }
+          : {}),
       };
 
       const res = await fetch(input, {

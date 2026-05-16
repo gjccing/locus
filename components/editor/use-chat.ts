@@ -73,22 +73,42 @@ function createChatTransport({
       > & {
         body?: Record<string, unknown>;
       };
-      const extraBody = (bodyOptions as { body?: Record<string, unknown> })
-        .body;
+      const optionsBody = (bodyOptions as { body?: Record<string, unknown> })
+        ?.body;
+
+      // submitAIChat passes `body: { ctx }` then spreads options; a nested
+      // `options.body` from mention continue-writing overwrites ctx entirely.
+      const ctx =
+        initBody.ctx ??
+        initBody.body?.ctx ??
+        optionsBody?.ctx ?? {
+          children: editor.children,
+          selection: editor.selection,
+          toolName: editor.getOption(AIChatPlugin, 'toolName'),
+        };
 
       const body = {
         ...initBody,
-        ...bodyOptions,
-        ...(initBody.body || extraBody
-          ? {
-              body: {
-                ...initBody.body,
-                ...extraBody,
-                ctx: initBody.body?.ctx ?? extraBody?.ctx,
-              },
-            }
-          : {}),
+        ...(bodyOptions && typeof bodyOptions === 'object' ? bodyOptions : {}),
+        apiKey:
+          initBody.apiKey ??
+          initBody.body?.apiKey ??
+          optionsBody?.apiKey ??
+          (bodyOptions as Record<string, unknown> | undefined)?.apiKey,
+        model:
+          initBody.model ??
+          initBody.body?.model ??
+          optionsBody?.model ??
+          (bodyOptions as Record<string, unknown> | undefined)?.model,
+        provider:
+          initBody.provider ??
+          initBody.body?.provider ??
+          optionsBody?.provider ??
+          (bodyOptions as Record<string, unknown> | undefined)?.provider,
+        ctx,
       };
+
+      delete body.body;
 
       const res = await fetch(input, {
         ...init,

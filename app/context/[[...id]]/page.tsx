@@ -9,7 +9,7 @@ export const metadata = {
 
 export default async function ContextPage({ params }: { params: Promise<{ id?: string[] }> }) {
   const session = await auth()
-  const user = session?.user
+  const user = session!.user
   const { id } = await params
   const contextId = id?.[0] ?? "home"
 
@@ -18,12 +18,10 @@ export default async function ContextPage({ params }: { params: Promise<{ id?: s
     <main className="relative h-full w-full overflow-hidden bg-secondary">
       <ContextEditor contextId={contextId} />
       <SidebarTrigger className="absolute top-4 left-4 sm:top-6 sm:left-6" />
-      {user && (
-        <SettingsSheet
-          classNameOfTrigger="absolute top-4 right-4 sm:top-6 sm:right-6"
-          user={user}
-        />
-      )}
+      <SettingsSheet
+        classNameOfTrigger="absolute top-4 right-4 sm:top-6 sm:right-6"
+        user={user}
+      />
     </main>
   )
 }

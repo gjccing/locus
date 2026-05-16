@@ -56,11 +56,13 @@ export async function POST(req: NextRequest) {
     value: children,
   });
 
-  const apiKey = key || process.env.AI_GATEWAY_API_KEY;
+  const mentionApiKey = key?.trim() || undefined;
+  const gatewayApiKey =
+    mentionApiKey ?? process.env.AI_GATEWAY_API_KEY?.trim() ?? undefined;
 
-  if (!apiKey) {
+  if (!gatewayApiKey && !mentionApiKey) {
     return NextResponse.json(
-      { error: 'Missing AI Gateway API key.' },
+      { error: 'Missing API key. Add one in settings or set AI_GATEWAY_API_KEY.' },
       { status: 401 }
     );
   }
@@ -68,15 +70,15 @@ export async function POST(req: NextRequest) {
   const isSelecting = editor.api.isExpanded();
 
   const gatewayProvider = createGateway({
-    apiKey,
+    apiKey: gatewayApiKey!,
   });
 
   const resolveModel = (modelId?: string) => {
-    if (modelId && key) {
+    if (modelId && mentionApiKey && provider) {
       return createMentionLanguageModel(
-        provider as AIProvider | undefined,
+        provider as AIProvider,
         modelId,
-        apiKey
+        mentionApiKey
       );
     }
 

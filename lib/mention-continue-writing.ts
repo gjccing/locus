@@ -60,6 +60,11 @@ ${contextMd}
         apiKey: apikey,
         model: modelName,
         provider: mentionContext.provider,
+        ctx: {
+          children: editor.children,
+          selection: editor.selection,
+          toolName: 'generate',
+        },
       },
     },
   });

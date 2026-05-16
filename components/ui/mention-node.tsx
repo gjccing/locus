@@ -16,11 +16,8 @@ import {
 } from 'platejs/react';
 
 import {
-  fetchGatewayCatalog,
-  fetchGroqLatestModels,
-  gatewayOwnedBy,
+  getMentionModelsForProvider,
   MENTION_MODELS_PER_PROVIDER,
-  pickLatestGatewayModels,
 } from '@/lib/mention-models';
 import { cn } from '@/lib/utils';
 import { useMounted } from '@/hooks/use-mounted';
@@ -156,86 +153,25 @@ function MentionComboboxModels({
   const open = store.useState("open");
   const passedByProvider = usePassedProviderKeys();
 
-  const [groups, setGroups] = React.useState<MentionModelGroup[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const groups = React.useMemo(() => {
+    if (!open || passedByProvider.size === 0) return [];
 
-  React.useEffect(() => {
-    if (!open) return;
+    const nextGroups: MentionModelGroup[] = [];
 
-    const ac = new AbortController();
+    for (const provider of [...passedByProvider.keys()].sort((a, b) =>
+      a.localeCompare(b)
+    )) {
+      const models = getMentionModelsForProvider(
+        provider,
+        MENTION_MODELS_PER_PROVIDER
+      );
 
-    (async () => {
-      if (passedByProvider.size === 0) {
-        setGroups([]);
-        setError(null);
-        setLoading(false);
-        return;
+      if (models.length > 0) {
+        nextGroups.push({ provider, models });
       }
+    }
 
-      setLoading(true);
-      setError(null);
-
-      try {
-        let catalog: Awaited<ReturnType<typeof fetchGatewayCatalog>> | null =
-          null;
-
-        const nextGroups: MentionModelGroup[] = [];
-
-        for (const provider of [...passedByProvider.keys()].sort((a, b) =>
-          a.localeCompare(b)
-        )) {
-          const token = passedByProvider.get(provider)!;
-
-          if (provider === "Groq") {
-            const models = await fetchGroqLatestModels(
-              token,
-              MENTION_MODELS_PER_PROVIDER,
-              ac.signal
-            );
-            if (models.length > 0) {
-              nextGroups.push({ provider, models });
-            }
-            continue;
-          }
-
-          const ownedBy = gatewayOwnedBy(provider);
-          if (!ownedBy) continue;
-
-          if (!catalog) {
-            catalog = await fetchGatewayCatalog(ac.signal);
-          }
-
-          const gatewayModels = pickLatestGatewayModels(
-            catalog,
-            ownedBy,
-            MENTION_MODELS_PER_PROVIDER
-          );
-          const models = gatewayModels.map((m) => ({
-            id: m.id,
-            label: m.id,
-          }));
-
-          if (models.length > 0) {
-            nextGroups.push({ provider, models });
-          }
-        }
-
-        if (!ac.signal.aborted) {
-          setGroups(nextGroups);
-        }
-      } catch (e) {
-        if (ac.signal.aborted) return;
-        setError(e instanceof Error ? e.message : "Could not load models");
-        setGroups([]);
-      } finally {
-        if (!ac.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => ac.abort();
+    return nextGroups;
   }, [open, passedByProvider]);
 
   if (passedByProvider.size === 0) {
@@ -259,13 +195,7 @@ function MentionComboboxModels({
 
   return (
     <>
-      <InlineComboboxEmpty>
-        {loading
-          ? "Loading models…"
-          : error
-            ? error
-            : "No matching models"}
-      </InlineComboboxEmpty>
+      <InlineComboboxEmpty>No matching models</InlineComboboxEmpty>
 
       {groups.map((g) => (
         <InlineComboboxGroup key={g.provider}>

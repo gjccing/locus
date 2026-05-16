@@ -1,61 +1,67 @@
-import type { AIProvider } from "@/stores/app-store"
+import type { AIProvider } from '@/stores/app-store';
 
-const VERCEL_GATEWAY_MODELS = "https://ai-gateway.vercel.sh/v1/models"
-const GROQ_MODELS = "https://api.groq.com/openai/v1/models"
+import gatewayCatalogFile from '@/lib/data/gateway-catalog.json';
+import groqCatalogFile from '@/lib/data/groq-catalog.json';
 
-export const MENTION_MODELS_PER_PROVIDER = Infinity
+export const MENTION_MODELS_PER_PROVIDER = Infinity;
 
 export type GatewayModel = {
-  id: string
-  name?: string
-  owned_by?: string
-  type?: string
-  released?: number
-}
+  id: string;
+  name?: string;
+  owned_by?: string;
+  type?: string;
+  released?: number;
+};
 
-type GatewayListResponse = {
-  data: GatewayModel[]
-}
+export type MentionModelOption = {
+  id: string;
+  label: string;
+};
 
-type GroqListResponse = {
-  data?: { id: string; created?: number }[]
-}
+type LocalCatalogFile<T> = {
+  fetchedAt: string;
+  data: T[];
+};
 
-let gatewayCatalogCache: { at: number; data: GatewayModel[] } | null = null
-const GATEWAY_CACHE_MS = 5 * 60 * 1000
+type GroqCatalogRow = {
+  id: string;
+  created?: number;
+};
+
+const gatewayCatalog = gatewayCatalogFile as LocalCatalogFile<GatewayModel>;
+const groqCatalog = groqCatalogFile as LocalCatalogFile<GroqCatalogRow>;
+
+export function getMentionCatalogFetchedAt() {
+  return {
+    gateway: gatewayCatalog.fetchedAt,
+    groq: groqCatalog.fetchedAt,
+  };
+}
 
 export function gatewayOwnedBy(provider: AIProvider): string | null {
   switch (provider) {
-    case "OpenAI":
-      return "openai"
-    case "Anthropic":
-      return "anthropic"
-    case "Gemini":
-      return "google"
+    case 'OpenAI':
+      return 'openai';
+    case 'Anthropic':
+      return 'anthropic';
+    case 'Gemini':
+      return 'google';
     default:
-      return null
+      return null;
   }
 }
 
+/** Local Vercel AI Gateway catalog (see `npm run mention-models:download`). */
+export function getGatewayCatalog(): GatewayModel[] {
+  return gatewayCatalog.data;
+}
+
+/** @deprecated Use `getGatewayCatalog`. Kept for existing call sites. */
 export async function fetchGatewayCatalog(
   signal?: AbortSignal
 ): Promise<GatewayModel[]> {
-  if (
-    gatewayCatalogCache &&
-    Date.now() - gatewayCatalogCache.at < GATEWAY_CACHE_MS
-  ) {
-    return gatewayCatalogCache.data
-  }
-
-  const res = await fetch(VERCEL_GATEWAY_MODELS, { signal })
-  if (!res.ok) {
-    throw new Error(`Model catalog request failed (${res.status})`)
-  }
-
-  const json = (await res.json()) as GatewayListResponse
-  const data = Array.isArray(json.data) ? json.data : []
-  gatewayCatalogCache = { at: Date.now(), data }
-  return data
+  signal?.throwIfAborted();
+  return getGatewayCatalog();
 }
 
 export function pickLatestGatewayModels(
@@ -66,46 +72,61 @@ export function pickLatestGatewayModels(
   const filtered = catalog.filter(
     (m) =>
       m.owned_by === ownedBy &&
-      m.type === "language" &&
-      typeof m.id === "string"
-  )
+      m.type === 'language' &&
+      typeof m.id === 'string'
+  );
 
-  filtered.sort((a, b) => (b.released ?? 0) - (a.released ?? 0))
+  filtered.sort((a, b) => (b.released ?? 0) - (a.released ?? 0));
 
-  const seen = new Set<string>()
-  const out: GatewayModel[] = []
+  const seen = new Set<string>();
+  const out: GatewayModel[] = [];
 
   for (const m of filtered) {
-    if (seen.has(m.id)) continue
-    seen.add(m.id)
-    out.push(m)
-    if (out.length >= limit) break
+    if (seen.has(m.id)) continue;
+    seen.add(m.id);
+    out.push(m);
+    if (out.length >= limit) break;
   }
 
-  return out
+  return out;
 }
 
-export async function fetchGroqLatestModels(
-  apiKey: string,
-  limit: number,
-  signal?: AbortSignal
-): Promise<{ id: string; label: string }[]> {
-  const res = await fetch(GROQ_MODELS, {
-    signal,
-    headers: { Authorization: `Bearer ${apiKey.trim()}` },
-  })
-
-  if (!res.ok) {
-    throw new Error(`Groq models request failed (${res.status})`)
-  }
-
-  const json = (await res.json()) as GroqListResponse
-  const rows = json.data ?? []
-
-  rows.sort((a, b) => (b.created ?? 0) - (a.created ?? 0))
+/** Local Groq catalog (see `npm run mention-models:download` with GROQ_API_KEY). */
+export function getGroqModels(limit: number): MentionModelOption[] {
+  const rows = [...groqCatalog.data];
+  rows.sort((a, b) => (b.created ?? 0) - (a.created ?? 0));
 
   return rows.slice(0, limit).map((r) => ({
     id: r.id,
     label: r.id,
-  }))
+  }));
+}
+
+/** @deprecated Use `getGroqModels`. `apiKey` is unused (catalog is local). */
+export async function fetchGroqLatestModels(
+  _apiKey: string,
+  limit: number,
+  signal?: AbortSignal
+): Promise<MentionModelOption[]> {
+  signal?.throwIfAborted();
+  return getGroqModels(limit);
+}
+
+export function getMentionModelsForProvider(
+  provider: AIProvider,
+  limit: number = MENTION_MODELS_PER_PROVIDER
+): MentionModelOption[] {
+  if (provider === 'Groq') {
+    return getGroqModels(limit);
+  }
+
+  const ownedBy = gatewayOwnedBy(provider);
+  if (!ownedBy) return [];
+
+  return pickLatestGatewayModels(getGatewayCatalog(), ownedBy, limit).map(
+    (m) => ({
+      id: m.id,
+      label: m.id,
+    })
+  );
 }

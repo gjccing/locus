@@ -26,11 +26,8 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  fetchGatewayCatalog,
-  fetchGroqLatestModels,
-  gatewayOwnedBy,
+  getMentionModelsForProvider,
   MENTION_MODELS_PER_PROVIDER,
-  pickLatestGatewayModels,
 } from "@/lib/mention-models"
 import { cn } from "@/lib/utils"
 import type { AIProvider, AssistantInfo } from "@/stores/app-store"
@@ -65,14 +62,10 @@ function apiKeyLabel(
 function modelSelectPlaceholder(args: {
   noApiKey: boolean
   noProvider: boolean
-  loading: boolean
-  error: string | null
   empty: boolean
 }) {
   if (args.noApiKey) return "Select an API key first"
   if (args.noProvider) return "This API key has no provider"
-  if (args.loading) return "Loading models…"
-  if (args.error) return args.error
   if (args.empty) return "No models for this provider"
   return "Select model"
 }
@@ -104,90 +97,25 @@ export function AssistantCard({
     [apiKeys, selectKeyId]
   )
 
-  const [models, setModels] = useState<{ id: string; label: string }[]>([])
-  const [modelsLoading, setModelsLoading] = useState(false)
-  const [modelsError, setModelsError] = useState<string | null>(null)
-
-  useEffect(() => {
+  const models = useMemo(() => {
     const provider = selectedKey?.provider
-    const token = selectedKey?.token?.trim()
-    if (!provider || !token) {
-      setModels([])
-      setModelsLoading(false)
-      setModelsError(null)
-      return
-    }
-
-    const ac = new AbortController()
-
-      ; (async () => {
-        setModelsLoading(true)
-        setModelsError(null)
-
-        try {
-          let list: { id: string; label: string }[]
-
-          if (provider === "Groq") {
-            list = await fetchGroqLatestModels(
-              token,
-              MENTION_MODELS_PER_PROVIDER,
-              ac.signal
-            )
-          } else {
-            const ownedBy = gatewayOwnedBy(provider)
-            if (!ownedBy) {
-              list = []
-            } else {
-              const catalog = await fetchGatewayCatalog(ac.signal)
-              list = pickLatestGatewayModels(
-                catalog,
-                ownedBy,
-                MENTION_MODELS_PER_PROVIDER
-              ).map((m) => ({
-                id: m.id,
-                label: m.id,
-              }))
-            }
-          }
-
-          if (!ac.signal.aborted) {
-            setModels(list)
-          }
-        } catch (e) {
-          if (!ac.signal.aborted) {
-            setModels([])
-            setModelsError(
-              e instanceof Error ? e.message : "Could not load models"
-            )
-          }
-        } finally {
-          if (!ac.signal.aborted) {
-            setModelsLoading(false)
-          }
-        }
-      })()
-
-    return () => ac.abort()
-  }, [selectedKey?.id, selectedKey?.provider, selectedKey?.token])
+    if (!provider) return []
+    return getMentionModelsForProvider(provider, MENTION_MODELS_PER_PROVIDER)
+  }, [selectedKey?.provider])
 
   useEffect(() => {
-    if (modelsLoading || models.length === 0) return
+    if (models.length === 0) return
     if (modelId && !models.some((m) => m.id === modelId)) {
       onUpdate?.({ modelId: undefined })
     }
-  }, [modelId, models, modelsLoading, onUpdate])
+  }, [modelId, models, onUpdate])
 
   const selectModelId =
     modelId && models.some((m) => m.id === modelId) ? modelId : undefined
 
   const noApiKey = !selectKeyId
   const noProvider = Boolean(selectKeyId && !selectedKey?.provider)
-  const modelSelectDisabled =
-    noApiKey ||
-    noProvider ||
-    modelsLoading ||
-    Boolean(modelsError) ||
-    models.length === 0
+  const modelSelectDisabled = noApiKey || noProvider || models.length === 0
 
   return (
     <Card size="sm" className={cn("shrink-0 bg-transparent", className)}>
@@ -259,9 +187,7 @@ export function AssistantCard({
                 placeholder={modelSelectPlaceholder({
                   noApiKey,
                   noProvider,
-                  loading: modelsLoading,
-                  error: modelsError,
-                  empty: !modelsLoading && !modelsError && models.length === 0,
+                  empty: models.length === 0,
                 })}
               />
             </SelectTrigger>

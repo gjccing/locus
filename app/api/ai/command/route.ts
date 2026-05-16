@@ -86,7 +86,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    throw new Error("test")
     const stream = createUIMessageStream<ChatMessage>({
       execute: async ({ writer }) => {
         let toolName = toolNameParam

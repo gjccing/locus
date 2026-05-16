@@ -1,0 +1,18 @@
+{
+  "fetchedAt": "2026-05-16T00:00:00.000Z",
+  "data": [
+    { "id": "llama-3.3-70b-versatile", "created": 1733443200 },
+    { "id": "llama-3.1-8b-instant", "created": 1725408000 },
+    { "id": "llama-3.1-70b-versatile", "created": 1725408000 },
+    { "id": "llama-3.2-3b-preview", "created": 1727740800 },
+    { "id": "llama-3.2-11b-vision-preview", "created": 1727740800 },
+    { "id": "llama-3.2-90b-vision-preview", "created": 1727740800 },
+    { "id": "llama3-70b-8192", "created": 1714521600 },
+    { "id": "llama3-8b-8192", "created": 1714521600 },
+    { "id": "mixtral-8x7b-32768", "created": 1704067200 },
+    { "id": "gemma2-9b-it", "created": 1721260800 },
+    { "id": "deepseek-r1-distill-llama-70b", "created": 1737331200 },
+    { "id": "qwen-qwq-32b", "created": 1740787200 },
+    { "id": "llama-guard-3-8b", "created": 1725408000 }
+  ]
+}

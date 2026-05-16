@@ -2,6 +2,7 @@
 
 import { TrailingBlockPlugin } from "platejs"
 
+import { ContextAIKit } from "@/components/editor/plugins/ai-kit"
 import { AlignKit } from "@/components/editor/plugins/align-kit"
 import { AutoformatKit } from "@/components/editor/plugins/autoformat-kit"
 import { BasicBlocksKit } from "@/components/editor/plugins/basic-blocks-kit"
@@ -19,6 +20,7 @@ import { ListKit } from "@/components/editor/plugins/list-kit"
 import { MarkdownKit } from "@/components/editor/plugins/markdown-kit"
 import { MathKit } from "@/components/editor/plugins/math-kit"
 import { MediaKit } from "@/components/editor/plugins/media-kit"
+import { MentionBelowContinueWritingPlugin } from "@/components/editor/plugins/mention-below-continue-writing-plugin"
 import { MentionKit } from "@/components/editor/plugins/mention-kit"
 import { SlashKit } from "@/components/editor/plugins/slash-kit"
 import { TableKit } from "@/components/editor/plugins/table-kit"
@@ -35,6 +37,8 @@ export const ContextEditorKit = [
   ...MathKit,
   ...LinkKit,
   ...MentionKit,
+  ...ContextAIKit,
+  MentionBelowContinueWritingPlugin,
   ...BasicMarksKit,
   ...FontKit,
   ...ListKit,

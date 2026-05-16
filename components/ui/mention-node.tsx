@@ -6,7 +6,7 @@ import { useComboboxContext } from '@ariakit/react';
 import type { TComboboxInputElement, TMentionElement } from 'platejs';
 import type { PlateElementProps } from 'platejs/react';
 
-import { getMentionOnSelectItem } from '@platejs/mention';
+import { getEditorPlugin } from 'platejs';
 import { IS_APPLE, KEYS } from 'platejs';
 import {
   PlateElement,
@@ -87,7 +87,34 @@ export function MentionElement(
   );
 }
 
-const onSelectItem = getMentionOnSelectItem();
+function insertMentionWithAI(
+  editor: PlateElementProps<TComboboxInputElement>['editor'],
+  item: { key: string; text: string },
+  search: string,
+  provider: AIProvider,
+  apiKey: string
+) {
+  const { getOptions, tf } = getEditorPlugin(editor, { key: KEYS.mention });
+  const { insertSpaceAfterMention } = getOptions();
+
+  tf.insert.mention({
+    apiKey,
+    key: item.key,
+    provider,
+    value: item.text,
+  });
+  editor.tf.move({ unit: 'offset' });
+
+  const pathAbove = editor.api.block()?.[1];
+  if (
+    editor.selection &&
+    pathAbove &&
+    editor.api.isEnd(editor.selection.anchor, pathAbove) &&
+    insertSpaceAfterMention
+  ) {
+    editor.tf.insertText(' ');
+  }
+}
 
 const providerGroupLabel: Record<AIProvider, string> = {
   OpenAI: "OpenAI",
@@ -254,7 +281,15 @@ function MentionComboboxModels({
                 keywords={[m.id, g.provider]}
                 label={m.label}
                 value={m.label}
-                onClick={() => onSelectItem(editor, item, search)}
+                onClick={() =>
+                  insertMentionWithAI(
+                    editor,
+                    item,
+                    search,
+                    g.provider,
+                    passedByProvider.get(g.provider)!
+                  )
+                }
               >
                 <span className="truncate">{m.label}</span>
               </InlineComboboxItem>

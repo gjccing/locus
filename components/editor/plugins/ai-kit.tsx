@@ -106,3 +106,10 @@ export const AIKit = [
   AIPlugin.withComponent(AILeaf),
   aiChatPlugin,
 ];
+
+/** AI chat + streaming without duplicating MarkdownKit (for ContextEditorKit). */
+export const ContextAIKit = [
+  ...CursorOverlayKit,
+  AIPlugin.withComponent(AILeaf),
+  aiChatPlugin,
+];

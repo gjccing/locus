@@ -16,7 +16,9 @@ import {
 } from 'platejs/react';
 
 import {
+  getMentionAssistants,
   getMentionModelsForProvider,
+  MENTION_ASSISTANTS_GROUP,
   MENTION_MODELS_PER_PROVIDER,
 } from '@/lib/mention-models';
 import { cn } from '@/lib/utils';
@@ -89,13 +91,16 @@ function insertMentionWithAI(
   item: { key: string; text: string },
   search: string,
   provider: AIProvider,
-  apiKey: string
+  apiKey: string,
+  options?: { assistantId?: string; instructions?: string }
 ) {
   const { getOptions, tf } = getEditorPlugin(editor, { key: KEYS.mention });
   const { insertSpaceAfterMention } = getOptions();
 
   tf.insert.mention({
     apiKey,
+    assistantId: options?.assistantId,
+    instructions: options?.instructions,
     key: item.key,
     provider,
     value: item.text,
@@ -152,6 +157,13 @@ function MentionComboboxModels({
   const store = useComboboxContext()!;
   const open = store.useState("open");
   const passedByProvider = usePassedProviderKeys();
+  const assistants = useAppStore((s) => s.assistants);
+  const apiKeys = useAppStore((s) => s.apiKeys);
+
+  const assistantOptions = React.useMemo(
+    () => getMentionAssistants(assistants, apiKeys),
+    [assistants, apiKeys]
+  );
 
   const groups = React.useMemo(() => {
     if (!open || passedByProvider.size === 0) return [];
@@ -174,7 +186,7 @@ function MentionComboboxModels({
     return nextGroups;
   }, [open, passedByProvider]);
 
-  if (passedByProvider.size === 0) {
+  if (passedByProvider.size === 0 && assistantOptions.length === 0) {
     return (
       <>
         <InlineComboboxEmpty>
@@ -196,6 +208,41 @@ function MentionComboboxModels({
   return (
     <>
       <InlineComboboxEmpty>No matching models</InlineComboboxEmpty>
+
+      {assistantOptions.length > 0 ? (
+        <InlineComboboxGroup>
+          <InlineComboboxGroupLabel>
+            {MENTION_ASSISTANTS_GROUP}
+          </InlineComboboxGroupLabel>
+          {assistantOptions.map((a) => {
+            const item = { key: a.modelId, text: a.label };
+            return (
+              <InlineComboboxItem
+                key={a.id}
+                group={MENTION_ASSISTANTS_GROUP}
+                keywords={[a.label, a.modelId, a.provider]}
+                label={a.label}
+                value={a.label}
+                onClick={() =>
+                  insertMentionWithAI(
+                    editor,
+                    item,
+                    search,
+                    a.provider,
+                    a.apiKey,
+                    {
+                      assistantId: a.id,
+                      instructions: a.instructions || undefined,
+                    }
+                  )
+                }
+              >
+                <span className="truncate">{a.label}</span>
+              </InlineComboboxItem>
+            );
+          })}
+        </InlineComboboxGroup>
+      ) : null}
 
       {groups.map((g) => (
         <InlineComboboxGroup key={g.provider}>

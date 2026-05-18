@@ -110,6 +110,11 @@ function createChatTransport({
           initBody.body?.provider ??
           optionsBody?.provider ??
           (bodyOptions as Record<string, unknown> | undefined)?.provider,
+        instructions:
+          initBody.instructions ??
+          initBody.body?.instructions ??
+          optionsBody?.instructions ??
+          (bodyOptions as Record<string, unknown> | undefined)?.instructions,
         ctx,
       };
 

@@ -1,4 +1,8 @@
-import type { AIProvider } from '@/stores/app-store';
+import type {
+  AIProvider,
+  APIKeyInfo,
+  AssistantInfo,
+} from '@/stores/app-store';
 
 import gatewayCatalogFile from '@/lib/data/gateway-catalog.json';
 import groqCatalogFile from '@/lib/data/groq-catalog.json';
@@ -17,6 +21,48 @@ export type MentionModelOption = {
   id: string;
   label: string;
 };
+
+export const MENTION_ASSISTANTS_GROUP = 'Assistants';
+
+export type MentionAssistantOption = {
+  id: string;
+  label: string;
+  apiKey: string;
+  modelId: string;
+  provider: AIProvider;
+  instructions: string;
+};
+
+/** Assistants with a passed API key and configured model, for @mention. */
+export function getMentionAssistants(
+  assistants: AssistantInfo[],
+  apiKeys: APIKeyInfo[]
+): MentionAssistantOption[] {
+  const keyById = new Map(
+    apiKeys
+      .filter((k) => k.status === 'passed' && k.token?.trim())
+      .map((k) => [k.id, k] as const)
+  );
+
+  return assistants
+    .filter((a) => {
+      if (!a.name.trim() || !a.modelId?.trim() || !a.apiKeyId) return false;
+      const key = keyById.get(a.apiKeyId);
+      return Boolean(key?.provider && key.token?.trim());
+    })
+    .map((a) => {
+      const key = keyById.get(a.apiKeyId!)!;
+      return {
+        id: a.id,
+        label: a.name.trim(),
+        apiKey: key.token!.trim(),
+        modelId: a.modelId!.trim(),
+        provider: key.provider!,
+        instructions: a.instructions.trim(),
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
 
 type LocalCatalogFile<T> = {
   fetchedAt: string;

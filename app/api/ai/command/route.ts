@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
   const key = payload.apiKey ?? requestBody.apiKey
   const model = payload.model ?? requestBody.model
   const provider = payload.provider ?? requestBody.provider
+  const instructionsRaw = payload.instructions ?? requestBody.instructions
+  const instructions =
+    typeof instructionsRaw === "string" ? instructionsRaw.trim() : undefined
   const messagesRaw = payload.messages
   const ctx = payload.ctx ?? requestBody.ctx
 
@@ -79,6 +82,7 @@ export async function POST(req: NextRequest) {
         const generatePrompt = getGeneratePrompt(editor, {
           isSelecting,
           messages: messagesRaw,
+          systemInstructions: instructions,
         })
 
         const textStream = streamText({

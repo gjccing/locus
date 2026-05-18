@@ -15,15 +15,6 @@ export interface APIKeyInfo {
   status: ConfigStatus
 }
 
-export interface AssistantInfo {
-  id: string
-  name: string
-  apiKeyId?: string
-  /** Model id from the provider catalog (see `lib/mention-models.ts`). */
-  modelId?: string
-  instructions: string
-}
-
 type ApiKeysSlice = {
   apiKeys: APIKeyInfo[]
   apiKeysIsLoaded: boolean
@@ -34,20 +25,7 @@ type ApiKeysSlice = {
   apiKeysDelete: (id: string) => Promise<void>
 }
 
-type AssistantsSlice = {
-  assistants: AssistantInfo[]
-  assistantsIsLoaded: boolean
-  assistantsLoadFromSession: () => Promise<void>
-  assistantsSaveToSession: () => Promise<void>
-  assistantsAdd: (assistant: AssistantInfo) => Promise<void>
-  assistantsUpdate: (
-    id: string,
-    updates: Partial<AssistantInfo>
-  ) => Promise<void>
-  assistantsDelete: (id: string) => Promise<void>
-}
-
-export type AppState = ApiKeysSlice & AssistantsSlice
+export type AppState = ApiKeysSlice
 
 async function getEncryptedUserStorage(storagePrefix: string) {
   const session = await getSession()
@@ -57,12 +35,6 @@ async function getEncryptedUserStorage(storagePrefix: string) {
     storageKey: `${storagePrefix}-${session.user.login}`,
     secret: session.user.id,
   }
-}
-
-async function getAssistantsStorageKey() {
-  const session = await getSession()
-  if (!session?.user?.login) return null
-  return `assistants-${session.user.login}`
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -123,74 +95,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   apiKeysDelete: async (id) => {
     set((prev) => ({ apiKeys: prev.apiKeys.filter((item) => item.id !== id) }))
     await get().apiKeysSaveToSession()
-  },
-
-  assistants: [],
-  assistantsIsLoaded: false,
-
-  assistantsLoadFromSession: async () => {
-    const storageKey = await getAssistantsStorageKey()
-    if (!storageKey) {
-      set({ assistantsIsLoaded: true })
-      return
-    }
-
-    const stored = localStorage.getItem(storageKey)
-    if (!stored) {
-      set({ assistantsIsLoaded: true })
-      return
-    }
-
-    try {
-      type StoredAssistantRow = Partial<AssistantInfo> & {
-        id?: string
-      }
-      const parsed = JSON.parse(stored) as StoredAssistantRow[]
-      const assistants: AssistantInfo[] = parsed
-        .filter(
-          (row): row is StoredAssistantRow & { id: string } =>
-            typeof row?.id === "string"
-        )
-        .map((row) => ({
-          id: row.id,
-          name: typeof row.name === "string" ? row.name : "",
-          apiKeyId: row.apiKeyId,
-          modelId: typeof row.modelId === "string" ? row.modelId : undefined,
-          instructions:
-            typeof row.instructions === "string" ? row.instructions : "",
-        }))
-      set({ assistants, assistantsIsLoaded: true })
-    } catch {
-      set({ assistantsIsLoaded: true })
-    }
-  },
-
-  assistantsSaveToSession: async () => {
-    if (!get().assistantsIsLoaded) return
-    const storageKey = await getAssistantsStorageKey()
-    if (!storageKey) return
-
-    localStorage.setItem(storageKey, JSON.stringify(get().assistants))
-  },
-
-  assistantsAdd: async (assistant) => {
-    set((prev) => ({ assistants: [...prev.assistants, assistant] }))
-    await get().assistantsSaveToSession()
-  },
-
-  assistantsUpdate: async (id, updates) => {
-    set((prev) => ({
-      assistants: prev.assistants.map((item) =>
-        item.id === id ? { ...item, ...updates } : item
-      ),
-    }))
-    await get().assistantsSaveToSession()
-  },
-
-  assistantsDelete: async (id) => {
-    set((prev) => ({
-      assistants: prev.assistants.filter((item) => item.id !== id),
-    }))
-    await get().assistantsSaveToSession()
   },
 }))

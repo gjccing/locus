@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { SignInIcon } from "@primer/octicons-react"
 import { ApiKeyList } from "@/components/api-key/api-key-list"
-import { AssistantList } from "@/components/assistant/assistant-list"
 import { cn } from "@/lib/utils"
 
 interface SettingsSheetProps {
@@ -52,7 +51,6 @@ export function SettingsSheet({
         </SheetHeader>
         <div className="overflow-y-auto scroll-shadow-y">
           <ApiKeyList />
-          <AssistantList />
         </div>
         <SheetFooter>
           <form action={handleSignOut}>

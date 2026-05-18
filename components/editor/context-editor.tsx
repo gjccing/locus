@@ -9,7 +9,7 @@ import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-pl
 import { BlockSelectionShadowKeyboardFix } from "@/components/editor/plugins/block-selection-shadow-keyboard-fix"
 import { Editor, EditorContainer } from "@/components/ui/editor"
 import { cn } from "@/lib/utils"
-import { buildTreeFromValue } from "@/lib/editor-value-tools"
+import { buildTreeFromValue } from "@/lib/editor-value-tree"
 
 const initialValue: Value = [
   {

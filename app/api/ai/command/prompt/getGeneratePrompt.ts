@@ -13,22 +13,7 @@ import {
 } from '../utils';
 import { commonGenerateRules } from './common';
 
-function mergeInstruction(
-  systemInstructions: string | undefined,
-  messages: ChatMessage[]
-) {
-  const parts = [
-    systemInstructions?.trim(),
-    getLastUserInstruction(messages),
-  ].filter(Boolean);
-
-  return parts.join('\n\n');
-}
-
-function buildGenerateFreeformPrompt(
-  messages: ChatMessage[],
-  systemInstructions?: string
-) {
+function buildGenerateFreeformPrompt(messages: ChatMessage[]) {
   return buildStructuredPrompt({
     examples: [
       dedent`
@@ -62,7 +47,7 @@ function buildGenerateFreeformPrompt(
       `,
     ],
     history: formatTextFromMessages(messages),
-    instruction: mergeInstruction(systemInstructions, messages),
+    instruction: getLastUserInstruction(messages),
     rules: commonGenerateRules,
     task: dedent`
       You are an advanced content generation assistant.
@@ -74,8 +59,7 @@ function buildGenerateFreeformPrompt(
 
 function buildGenerateContextPrompt(
   editor: SlateEditor,
-  messages: ChatMessage[],
-  systemInstructions?: string
+  messages: ChatMessage[]
 ) {
   if (!isMultiBlocks(editor)) {
     addSelection(editor);
@@ -146,7 +130,7 @@ function buildGenerateContextPrompt(
       `,
     ],
     history: formatTextFromMessages(messages),
-    instruction: mergeInstruction(systemInstructions, messages),
+    instruction: getLastUserInstruction(messages),
     rules: dedent`
       ${commonGenerateRules}
       - DO NOT remove or alter custom MDX tags such as <u>, <callout>, <kbd>, <toc>, <sub>, <sup>, <mark>, <del>, <date>, <span>, <column>, <column_group>, <file>, <audio>, <video> unless explicitly requested.
@@ -164,20 +148,12 @@ function buildGenerateContextPrompt(
 
 export function getGeneratePrompt(
   editor: SlateEditor,
-  {
-    isSelecting,
-    messages,
-    systemInstructions,
-  }: {
-    isSelecting: boolean;
-    messages: ChatMessage[];
-    systemInstructions?: string;
-  }
+  { isSelecting, messages }: { isSelecting: boolean; messages: ChatMessage[] }
 ) {
   // Freeform generation: open-ended creation without context
   if (!isSelecting) {
-    return buildGenerateFreeformPrompt(messages, systemInstructions);
+    return buildGenerateFreeformPrompt(messages);
   }
   // Context-based generation: use selected text as context
-  return buildGenerateContextPrompt(editor, messages, systemInstructions);
+  return buildGenerateContextPrompt(editor, messages);
 }

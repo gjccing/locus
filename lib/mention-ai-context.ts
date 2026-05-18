@@ -6,27 +6,21 @@ import type { AIProvider } from '@/stores/app-store';
 export type TMentionElementWithAI = TMentionElement & {
   provider?: AIProvider;
   apiKey?: string;
-  assistantId?: string;
-  instructions?: string;
 };
 
 export type MentionAIContext = {
   'model-name': string;
   provider: AIProvider | undefined;
   apikey: string | undefined;
-  instructions?: string;
 };
 
 export function getMentionAIContext(
   mention: TMentionElementWithAI
 ): MentionAIContext {
-  const instructions = mention.instructions?.trim();
-
   return {
-    'model-name': String(mention.key ?? mention.value ?? ''),
+    'model-name': String(mention.value ?? mention.key ?? ''),
     provider: mention.provider,
     apikey: mention.apiKey,
-    instructions: instructions || undefined,
   };
 }
 

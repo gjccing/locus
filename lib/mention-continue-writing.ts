@@ -24,7 +24,7 @@ export function triggerMentionContinueWriting(
   editor: PlateEditor,
   mentionContext: MentionAIContext
 ) {
-  const { apikey, 'model-name': modelName, instructions } = mentionContext;
+  const { apikey, 'model-name': modelName } = mentionContext;
   if (!apikey?.trim() || !modelName.trim()) return;
 
   const block = editor.api.block();
@@ -60,7 +60,6 @@ ${contextMd}
         apiKey: apikey,
         model: modelName,
         provider: mentionContext.provider,
-        ...(instructions ? { instructions } : {}),
         ctx: {
           children: editor.children,
           selection: editor.selection,

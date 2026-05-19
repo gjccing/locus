@@ -7,6 +7,8 @@ import { useBlockSelected } from '@platejs/selection/react';
 import { cva } from 'class-variance-authority';
 import { type PlateElementProps, usePluginOption } from 'platejs/react';
 
+import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
+
 export const blockSelectionVariants = cva(
   'pointer-events-none absolute inset-0 z-1 bg-brand/[.13] transition-opacity',
   {
@@ -39,6 +41,48 @@ export function BlockSelection(props: PlateElementProps) {
         active: isBlockSelected && !isDragging,
       })}
       data-slot="block-selection"
+    />
+  );
+}
+
+export const contextBlockHighlightVariants = cva(
+  'pointer-events-none absolute inset-0 z-1 bg-highlight/20 ring-1 ring-inset ring-highlight/35 transition-opacity',
+  {
+    defaultVariants: {
+      active: true,
+    },
+    variants: {
+      active: {
+        false: 'opacity-0',
+        true: 'opacity-100',
+      },
+    },
+  }
+);
+
+export function ContextBlockHighlight(props: PlateElementProps) {
+  const highlightBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextHighlightBlockIds'
+  );
+  const isDragging = usePluginOption(DndPlugin, 'isDragging');
+  const blockId = props.element.id as string | undefined;
+
+  if (
+    !blockId ||
+    !highlightBlockIds.includes(blockId) ||
+    props.plugin.key === 'tr' ||
+    props.plugin.key === 'table'
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      className={contextBlockHighlightVariants({
+        active: !isDragging,
+      })}
+      data-slot="context-block-highlight"
     />
   );
 }

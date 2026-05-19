@@ -21,6 +21,10 @@ import {
   clearSelectingContext,
   setSelectingContext,
 } from "@/lib/ai-selecting-context"
+import {
+  clearContextHighlightBlockIds,
+  setContextHighlightBlockIds,
+} from "@/lib/ai-context-block-highlight"
 
 async function fetchContextSelectorResult(
   mentionBlockMarkdown: string,
@@ -185,6 +189,8 @@ export async function triggerMentionContinueWriting(
       selectedBlocks,
     })
 
+    setContextHighlightBlockIds(editor, selectedBlockIds)
+
     const contextMarkdown = selectedBlockText
 
     const prompt = buildContinueWritingPrompt(
@@ -214,6 +220,7 @@ export async function triggerMentionContinueWriting(
     })
   } catch {
     clearSelectingContext(editor)
+    clearContextHighlightBlockIds(editor)
     editor.setOption(AIChatPlugin, 'open', false)
   }
 }

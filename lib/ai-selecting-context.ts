@@ -1,6 +1,7 @@
 import type { PlateEditor } from 'platejs/react';
 
 import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
+import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
 
 export function clearSelectingContext(editor: PlateEditor) {
   editor.setOption(aiChatPlugin, 'selectingContext', false);
@@ -24,5 +25,6 @@ export function stopInsertOrSelectingContext(
     return;
   }
 
+  clearContextHighlightBlockIds(editor);
   stop();
 }

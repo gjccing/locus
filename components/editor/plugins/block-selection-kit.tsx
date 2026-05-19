@@ -3,7 +3,10 @@
 import { BlockSelectionPlugin } from '@platejs/selection/react';
 import { getPluginTypes, KEYS } from 'platejs';
 
-import { BlockSelection } from '@/components/ui/block-selection';
+import {
+  BlockSelection,
+  ContextBlockHighlight,
+} from '@/components/ui/block-selection';
 
 import { BlockSelectionCopyFixPlugin } from '@/components/editor/plugins/block-selection-copy-fix';
 
@@ -33,7 +36,12 @@ export const BlockSelectionKit = [
       belowRootNodes: (props) => {
         if (!hasSelectableClass(props)) return null;
 
-        return <BlockSelection {...(props as any)} />;
+        return (
+          <>
+            <BlockSelection {...(props as any)} />
+            <ContextBlockHighlight {...(props as any)} />
+          </>
+        );
       },
     },
   })),

@@ -52,6 +52,11 @@ export function AIMenu() {
 
   const streaming = usePluginOption(AIChatPlugin, 'streaming');
   const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
+  const contextHighlightBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextHighlightBlockIds'
+  );
+  const contextHighlighted = contextHighlightBlockIds.length > 0;
   const isFocusedLast = useFocusedLast();
   const open = usePluginOption(AIChatPlugin, 'open') && isFocusedLast;
   const [value, setValue] = React.useState('');
@@ -121,7 +126,8 @@ export function AIMenu() {
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  if ((isLoading || selectingContext) && mode === 'insert') return null;
+  if ((isLoading || selectingContext || contextHighlighted) && mode === 'insert')
+    return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={false}>
@@ -339,6 +345,11 @@ export function AILoadingBar() {
   const chat = usePluginOption(AIChatPlugin, 'chat');
   const mode = usePluginOption(AIChatPlugin, 'mode');
   const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
+  const contextHighlightBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextHighlightBlockIds'
+  );
+  const contextHighlighted = contextHighlightBlockIds.length > 0;
 
   const { status } = chat;
 
@@ -350,7 +361,10 @@ export function AILoadingBar() {
 
   useHotkeys('esc', stopInsert);
 
-  if (mode === 'insert' && (selectingContext || isLoading)) {
+  if (
+    mode === 'insert' &&
+    (selectingContext || isLoading || contextHighlighted)
+  ) {
     const label = selectingContext
       ? 'Analyzing context...'
       : status === 'submitted'

@@ -16,6 +16,7 @@ import { type PlateEditor, usePluginOption } from 'platejs/react';
 import { AILoadingBar, AIMenu } from '@/components/ui/ai-menu';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { clearSelectingContext } from '@/lib/ai-selecting-context';
+import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
 
 import { useChat } from '../use-chat';
 import { aiChatPlugin } from './ai-chat-plugin';
@@ -108,6 +109,7 @@ export function rollbackInsertStreamOnError(editor: PlateEditor) {
   editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
   editor.setOption(AIChatPlugin, 'open', false);
   clearSelectingContext(editor);
+  clearContextHighlightBlockIds(editor);
 }
 
 /** Commit streamed insert text to the document (do not undo on finish). */
@@ -122,6 +124,7 @@ function finalizeInsertStream(editor: PlateEditor) {
   ai.removeMarks();
   editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
   editor.setOption(AIChatPlugin, 'open', false);
+  clearContextHighlightBlockIds(editor);
 
   indentAIResponseBlocks(editor, streamBlockPath);
   focusBlockBelowAIResponse(editor, streamBlockPath);

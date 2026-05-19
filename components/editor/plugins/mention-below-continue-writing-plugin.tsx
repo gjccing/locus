@@ -69,7 +69,7 @@ export const MentionBelowContinueWritingPlugin = createSlatePlugin({
 
           if (!findLastMentionInBlock(ctx.editor, prevPath)) return;
 
-          triggerMentionContinueWriting(ctx.editor as PlateEditor, context);
+          void triggerMentionContinueWriting(ctx.editor as PlateEditor, context);
         });
 
         return false;

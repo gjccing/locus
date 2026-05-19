@@ -43,12 +43,15 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
+import { stopInsertOrSelectingContext } from '@/lib/ai-selecting-context';
 
 export function AIMenu() {
   const { api, editor } = useEditorPlugin(AIChatPlugin);
   const mode = usePluginOption(AIChatPlugin, 'mode');
 
   const streaming = usePluginOption(AIChatPlugin, 'streaming');
+  const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
   const isFocusedLast = useFocusedLast();
   const open = usePluginOption(AIChatPlugin, 'open') && isFocusedLast;
   const [value, setValue] = React.useState('');
@@ -113,12 +116,12 @@ export function AIMenu() {
   });
 
   useHotkeys('esc', () => {
-    api.aiChat.stop();
+    stopInsertOrSelectingContext(editor, () => api.aiChat.stop());
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  if (isLoading && mode === 'insert') return null;
+  if ((isLoading || selectingContext) && mode === 'insert') return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={false}>
@@ -332,19 +335,28 @@ export const AIMenuItems = ({
 };
 
 export function AILoadingBar() {
-  const { api } = useEditorPlugin(AIChatPlugin);
+  const { api, editor } = useEditorPlugin(AIChatPlugin);
   const chat = usePluginOption(AIChatPlugin, 'chat');
   const mode = usePluginOption(AIChatPlugin, 'mode');
+  const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
 
   const { status } = chat;
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  useHotkeys('esc', () => {
-    api.aiChat.stop();
-  });
+  const stopInsert = () => {
+    stopInsertOrSelectingContext(editor, () => api.aiChat.stop());
+  };
 
-  if (isLoading && mode === 'insert') {
+  useHotkeys('esc', stopInsert);
+
+  if (mode === 'insert' && (selectingContext || isLoading)) {
+    const label = selectingContext
+      ? 'Analyzing context...'
+      : status === 'submitted'
+        ? 'Thinking...'
+        : 'Writing...';
+
     return (
       <div
         className={cn(
@@ -352,12 +364,12 @@ export function AILoadingBar() {
         )}
       >
         <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-        <span>{status === 'submitted' ? 'Thinking...' : 'Writing...'}</span>
+        <span>{label}</span>
         <Button
           size="sm"
           variant="ghost"
           className="flex items-center gap-1 text-xs"
-          onClick={() => api.aiChat.stop()}
+          onClick={stopInsert}
         >
           <PauseIcon className="h-4 w-4" />
           Stop

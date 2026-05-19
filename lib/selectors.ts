@@ -1,13 +1,13 @@
 import type { TElement, Value } from "platejs"
 import type { Node } from "@/lib/editor-value-tree"
 
-export function getOlderSibling(node: Node): Node | null {
+export function getOlderSiblings(node: Node): Node[] {
   const parent = node.parent
-  if (parent === undefined) return null
+  if (parent === undefined) return []
   const siblings = parent.children
   const index = siblings.indexOf(node)
-  if (index === -1) return null
-  return siblings[index - 1]
+  if (index <= 0) return []
+  return siblings.slice(0, index)
 }
 
 export function getAncestors(node: Node): Node[] {

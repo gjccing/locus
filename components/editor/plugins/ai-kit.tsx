@@ -15,8 +15,10 @@ import { type PlateEditor, usePluginOption } from 'platejs/react';
 
 import { AILoadingBar, AIMenu } from '@/components/ui/ai-menu';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
+import { clearSelectingContext } from '@/lib/ai-selecting-context';
 
 import { useChat } from '../use-chat';
+import { aiChatPlugin } from './ai-chat-plugin';
 import { CursorOverlayKit } from './cursor-overlay-kit';
 import { MarkdownKit } from './markdown-kit';
 
@@ -105,6 +107,7 @@ export function rollbackInsertStreamOnError(editor: PlateEditor) {
   ai.undo();
   editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
   editor.setOption(AIChatPlugin, 'open', false);
+  clearSelectingContext(editor);
 }
 
 /** Commit streamed insert text to the document (do not undo on finish). */
@@ -124,13 +127,7 @@ function finalizeInsertStream(editor: PlateEditor) {
   focusBlockBelowAIResponse(editor, streamBlockPath);
 }
 
-export const aiChatPlugin = AIChatPlugin.extend({
-  options: {
-    chatOptions: {
-      api: '/api/ai/command',
-      body: {},
-    },
-  },
+export const aiChatPluginWithHooks = aiChatPlugin.extend({
   render: {
     afterContainer: AILoadingBar,
     afterEditable: AIMenu,
@@ -227,12 +224,14 @@ export const AIKit = [
   ...CursorOverlayKit,
   ...MarkdownKit,
   AIPlugin.withComponent(AILeaf),
-  aiChatPlugin,
+  aiChatPluginWithHooks,
 ];
 
 /** AI chat + streaming without duplicating MarkdownKit (for ContextEditorKit). */
 export const ContextAIKit = [
   ...CursorOverlayKit,
   AIPlugin.withComponent(AILeaf),
-  aiChatPlugin,
+  aiChatPluginWithHooks,
 ];
+
+export { aiChatPlugin } from './ai-chat-plugin';

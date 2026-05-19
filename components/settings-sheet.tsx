@@ -1,48 +1,58 @@
 "use client"
 
-import { handleSignOut } from "@/app/actions/auth"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react"
+import { Settings } from "lucide-react"
+import { TrashIcon } from "@primer/octicons-react"
+
+import { ApiKeyList } from "@/components/api-key/api-key-list"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
 } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { SignInIcon } from "@primer/octicons-react"
-import { ApiKeyList } from "@/components/api-key/api-key-list"
 import { cn } from "@/lib/utils"
+import { useAppStore } from "@/stores/app-store"
 
 interface SettingsSheetProps {
   classNameOfTrigger?: string
-  user: {
-    name?: string | null
-    image?: string | null
-  }
 }
 
-export function SettingsSheet({
-  classNameOfTrigger,
-  user
-}: SettingsSheetProps) {
+export function SettingsSheet({ classNameOfTrigger }: SettingsSheetProps) {
+  const clearAllData = useAppStore((s) => s.apiKeysClearAll)
+  const [open, setOpen] = useState(false)
+
+  const handleClearAllData = async () => {
+    await clearAllData()
+    setOpen(false)
+  }
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className={cn(
-          "cursor-pointer rounded-full transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-          classNameOfTrigger
-        )}>
-          <Avatar>
-            <AvatarImage
-              src={user.image ?? undefined}
-              alt={user.name ?? "User"}
-            />
-            <AvatarFallback>
-              {user.name?.slice(0, 2).toUpperCase() ?? "US"}
-            </AvatarFallback>
-          </Avatar>
+        <button
+          type="button"
+          aria-label="Settings"
+          className={cn(
+            "flex size-10 cursor-pointer items-center justify-center rounded-full bg-background text-foreground shadow-sm transition-opacity outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            classNameOfTrigger
+          )}
+        >
+          <Settings className="size-5" />
         </button>
       </SheetTrigger>
       <SheetContent className="gap-0">
@@ -53,16 +63,36 @@ export function SettingsSheet({
           <ApiKeyList />
         </div>
         <SheetFooter>
-          <form action={handleSignOut}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="w-full text-destructive"
-            >
-              <SignInIcon size={16} />
-              Sign Out
-            </Button>
-          </form>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-destructive"
+              >
+                <TrashIcon size={16} />
+                Clear all data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This removes your saved API keys and device storage from this
+                  browser. You cannot undo this action.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() => void handleClearAllData()}
+                >
+                  Clear all data
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </SheetFooter>
       </SheetContent>
     </Sheet>

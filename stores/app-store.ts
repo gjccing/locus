@@ -17,11 +17,24 @@ export interface APIKeyInfo {
 const DEVICE_ID_KEY = "locus-device-id"
 const API_KEYS_KEY = "locus-api-keys"
 
+function clearLocusLocalStorage() {
+  localStorage.removeItem(DEVICE_ID_KEY)
+  localStorage.removeItem(API_KEYS_KEY)
+
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i)
+    if (key?.startsWith("api-keys-")) {
+      localStorage.removeItem(key)
+    }
+  }
+}
+
 type ApiKeysSlice = {
   apiKeys: APIKeyInfo[]
   apiKeysIsLoaded: boolean
   apiKeysLoad: () => Promise<void>
   apiKeysSave: () => Promise<void>
+  apiKeysClearAll: () => Promise<void>
   apiKeysAdd: (apiKey: APIKeyInfo) => Promise<void>
   apiKeysUpdate: (id: string, updates: Partial<APIKeyInfo>) => Promise<void>
   apiKeysDelete: (id: string) => Promise<void>
@@ -71,6 +84,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const data = JSON.stringify(get().apiKeys)
     const encrypted = await encryptData(data, secret)
     localStorage.setItem(API_KEYS_KEY, encrypted)
+  },
+
+  apiKeysClearAll: async () => {
+    clearLocusLocalStorage()
+    set({ apiKeys: [], apiKeysIsLoaded: true })
   },
 
   apiKeysAdd: async (apiKey) => {

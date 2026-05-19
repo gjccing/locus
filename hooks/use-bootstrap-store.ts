@@ -5,8 +5,8 @@ import { useAppStore } from "@/stores/app-store"
 
 // Bootstraps store slices that need async initialization and persistence hooks.
 export function useBootstrapStore() {
-  const loadApiKeys = useAppStore((s) => s.apiKeysLoadFromSession)
-  const saveApiKeys = useAppStore((s) => s.apiKeysSaveToSession)
+  const loadApiKeys = useAppStore((s) => s.apiKeysLoad)
+  const saveApiKeys = useAppStore((s) => s.apiKeysSave)
 
   useEffect(() => {
     void loadApiKeys()

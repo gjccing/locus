@@ -1,7 +1,6 @@
 "use client"
 
 import { create } from "zustand"
-import { getSession } from "next-auth/react"
 import { decryptData, encryptData } from "@/lib/crypto-client"
 
 export type ConfigStatus = "passed" | "error" | "idle"
@@ -15,11 +14,14 @@ export interface APIKeyInfo {
   status: ConfigStatus
 }
 
+const DEVICE_ID_KEY = "locus-device-id"
+const API_KEYS_KEY = "locus-api-keys"
+
 type ApiKeysSlice = {
   apiKeys: APIKeyInfo[]
   apiKeysIsLoaded: boolean
-  apiKeysLoadFromSession: () => Promise<void>
-  apiKeysSaveToSession: () => Promise<void>
+  apiKeysLoad: () => Promise<void>
+  apiKeysSave: () => Promise<void>
   apiKeysAdd: (apiKey: APIKeyInfo) => Promise<void>
   apiKeysUpdate: (id: string, updates: Partial<APIKeyInfo>) => Promise<void>
   apiKeysDelete: (id: string) => Promise<void>
@@ -27,34 +29,28 @@ type ApiKeysSlice = {
 
 export type AppState = ApiKeysSlice
 
-async function getEncryptedUserStorage(storagePrefix: string) {
-  const session = await getSession()
-  if (!session?.user?.login || !session?.user?.id) return null
-
-  return {
-    storageKey: `${storagePrefix}-${session.user.login}`,
-    secret: session.user.id,
+function getOrCreateDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(DEVICE_ID_KEY, id)
   }
+  return id
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
   apiKeys: [],
   apiKeysIsLoaded: false,
 
-  apiKeysLoadFromSession: async () => {
-    const ctx = await getEncryptedUserStorage("api-keys")
-    if (!ctx) {
-      set({ apiKeysIsLoaded: true })
-      return
-    }
-
-    const stored = localStorage.getItem(ctx.storageKey)
+  apiKeysLoad: async () => {
+    const secret = getOrCreateDeviceId()
+    const stored = localStorage.getItem(API_KEYS_KEY)
     if (!stored) {
       set({ apiKeysIsLoaded: true })
       return
     }
 
-    const decrypted = await decryptData(stored, ctx.secret)
+    const decrypted = await decryptData(stored, secret)
     if (!decrypted) {
       set({ apiKeysIsLoaded: true })
       return
@@ -68,19 +64,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  apiKeysSaveToSession: async () => {
+  apiKeysSave: async () => {
     if (!get().apiKeysIsLoaded) return
-    const ctx = await getEncryptedUserStorage("api-keys")
-    if (!ctx) return
 
+    const secret = getOrCreateDeviceId()
     const data = JSON.stringify(get().apiKeys)
-    const encrypted = await encryptData(data, ctx.secret)
-    localStorage.setItem(ctx.storageKey, encrypted)
+    const encrypted = await encryptData(data, secret)
+    localStorage.setItem(API_KEYS_KEY, encrypted)
   },
 
   apiKeysAdd: async (apiKey) => {
     set((prev) => ({ apiKeys: [...prev.apiKeys, apiKey] }))
-    await get().apiKeysSaveToSession()
+    await get().apiKeysSave()
   },
 
   apiKeysUpdate: async (id, updates) => {
@@ -89,11 +84,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         item.id === id ? { ...item, ...updates } : item
       ),
     }))
-    await get().apiKeysSaveToSession()
+    await get().apiKeysSave()
   },
 
   apiKeysDelete: async (id) => {
     set((prev) => ({ apiKeys: prev.apiKeys.filter((item) => item.id !== id) }))
-    await get().apiKeysSaveToSession()
+    await get().apiKeysSave()
   },
 }))

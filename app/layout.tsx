@@ -1,11 +1,16 @@
 import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
+import { BootstrapStore } from "@/components/bootstrap-store"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { Toaster } from "@/components/ui/sonner"
+
+export const metadata = {
+  title: "Locus",
+}
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'})
 
@@ -30,9 +35,10 @@ export default function RootLayout({
         geist.variable
       )}
     >
-      <body className="h-max w-max">
+      <body className="h-dvh w-dvw">
         <ThemeProvider>
           <TooltipProvider>
+            <BootstrapStore />
             {children}
             <Toaster position="bottom-right" />
           </TooltipProvider>

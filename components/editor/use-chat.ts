@@ -82,7 +82,7 @@ function createChatTransport({
         ?.body;
 
       // submitAIChat passes `body: { ctx }` then spreads options; a nested
-      // `options.body` from mention continue-writing overwrites ctx entirely.
+      // `options.body` from mention answer overwrites ctx entirely.
       const ctx =
         initBody.ctx ??
         initBody.body?.ctx ??

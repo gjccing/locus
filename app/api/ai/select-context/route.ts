@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       schema: contextSelectorResultSchema,
       schemaName: 'ContextSelectorResult',
       schemaDescription:
-        'Selector methods to gather minimal document context for continue writing',
+        'Selector methods to gather minimal document context for answering the user question',
       prompt: getSelectContextPrompt(mentionBlockMarkdown),
       temperature: 0,
     });

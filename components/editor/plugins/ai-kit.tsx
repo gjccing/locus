@@ -13,7 +13,7 @@ import {
 import { ElementApi, getPluginType, KEYS, PathApi, type Path } from 'platejs';
 import { type PlateEditor, usePluginOption } from 'platejs/react';
 
-import { AILoadingBar, AIMenu } from '@/components/ui/ai-menu';
+import { AILoadingBar } from '@/components/ui/ai-loading-bar';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { clearSelectingContext } from '@/lib/ai-selecting-context';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
@@ -133,10 +133,8 @@ function finalizeInsertStream(editor: PlateEditor) {
 export const aiChatPluginWithHooks = aiChatPlugin.extend({
   render: {
     afterContainer: AILoadingBar,
-    afterEditable: AIMenu,
     node: AIAnchorElement,
   },
-  shortcuts: { show: { keys: 'mod+j' } },
   useHooks: ({ editor, getOption }) => {
     useChat();
 

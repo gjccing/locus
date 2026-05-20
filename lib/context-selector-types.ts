@@ -44,5 +44,5 @@ export function parseContextSelectorResult(
 }
 
 export const DEFAULT_CONTEXT_SELECTOR_RESULT = {
-  methods: [...DEFAULT_CONTEXT_SELECTOR_METHODS],
+  methods: [],
 } satisfies ContextSelectorResult;

@@ -20,7 +20,7 @@ import { ListKit } from "@/components/editor/plugins/list-kit"
 import { MarkdownKit } from "@/components/editor/plugins/markdown-kit"
 import { MathKit } from "@/components/editor/plugins/math-kit"
 import { MediaKit } from "@/components/editor/plugins/media-kit"
-import { MentionBelowContinueWritingPlugin } from "@/components/editor/plugins/mention-below-continue-writing-plugin"
+import { MentionBelowAnswerPlugin } from "@/components/editor/plugins/mention-below-answer-plugin"
 import { MentionKit } from "@/components/editor/plugins/mention-kit"
 import { SlashKit } from "@/components/editor/plugins/slash-kit"
 import { TableKit } from "@/components/editor/plugins/table-kit"
@@ -38,7 +38,7 @@ export const ContextEditorKit = [
   ...LinkKit,
   ...MentionKit,
   ...ContextAIKit,
-  MentionBelowContinueWritingPlugin,
+  MentionBelowAnswerPlugin,
   ...BasicMarksKit,
   ...FontKit,
   ...ListKit,

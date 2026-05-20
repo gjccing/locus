@@ -13,7 +13,7 @@ import {
   getMentionAIContext,
   type MentionAIContext,
 } from '@/lib/mention-ai-context';
-import { triggerMentionContinueWriting } from '@/lib/mention-continue-writing';
+import { triggerMentionAnswer } from '@/lib/mention-answer';
 import type { PlateEditor } from 'platejs/react';
 
 function willCreateBlockBelow(editor: SlateEditor, blockPath: Path) {
@@ -27,11 +27,11 @@ function willCreateBlockBelow(editor: SlateEditor, blockPath: Path) {
 }
 
 /**
- * When Enter creates a new block under a block with @mention, stream continue
- * writing into the new block using the mention's model and API key.
+ * When Enter creates a new block under a block with @mention, stream an answer
+ * into the new block using the mention's model and API key.
  */
-export const MentionBelowContinueWritingPlugin = createSlatePlugin({
-  key: 'mentionBelowContinueWriting',
+export const MentionBelowAnswerPlugin = createSlatePlugin({
+  key: 'mentionBelowAnswer',
   inputRules: [
     defineInputRule({
       priority: 1,
@@ -69,7 +69,7 @@ export const MentionBelowContinueWritingPlugin = createSlatePlugin({
 
           if (!findLastMentionInBlock(ctx.editor, prevPath)) return;
 
-          void triggerMentionContinueWriting(ctx.editor as PlateEditor, context);
+          void triggerMentionAnswer(ctx.editor as PlateEditor, context);
         });
 
         return false;

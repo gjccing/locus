@@ -15,7 +15,8 @@ import { createSlateEditor } from "platejs"
 import { BaseEditorKit } from "@/components/editor/editor-base-kit"
 import { markdownJoinerTransform } from "@/lib/markdown-joiner-transform"
 
-import { getGeneratePrompt } from "./prompt"
+import { getGeneratePrompt, getMentionAnswerPrompt } from "./prompt"
+import type { MentionAnswerContext } from "@/lib/mention-answer"
 
 export async function POST(req: NextRequest) {
   const payload = await req.json()
@@ -76,10 +77,16 @@ export async function POST(req: NextRequest) {
   try {
     const stream = createUIMessageStream<ChatMessage>({
       execute: async ({ writer }) => {
-        const generatePrompt = getGeneratePrompt(editor, {
-          isSelecting,
-          messages: messagesRaw,
-        })
+        const mentionAnswer = ctx.mentionAnswer as
+          | MentionAnswerContext
+          | undefined
+
+        const generatePrompt = mentionAnswer
+          ? getMentionAnswerPrompt(mentionAnswer)
+          : getGeneratePrompt(editor, {
+              isSelecting,
+              messages: messagesRaw,
+            })
 
         const textStream = streamText({
           experimental_transform: markdownJoinerTransform(),

@@ -90,7 +90,7 @@ const initialValue: Value = [
   {
     "children": [
       {
-        "text": "Mention-triggered continue writing"
+        "text": "Mention-triggered Q&A"
       }
     ],
     "type": "p",
@@ -125,7 +125,7 @@ const initialValue: Value = [
         "value": "google/gemini-3.1-flash-lite",
       },
       {
-        "text": " continue this section focusing on latency and context trimming — do not repeat the intro above"
+        "text": " What are the key metrics for context trimming mentioned above?"
       }
     ],
     "type": "p",

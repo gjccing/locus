@@ -1,6 +1,6 @@
 import { AIChatPlugin } from "@platejs/ai/react"
 import { serializeMd } from "@platejs/markdown"
-import { PathApi, NodeApi, type Path } from "platejs"
+import { PathApi, NodeApi, ElementApi, KEYS, type Path } from "platejs"
 import type { PlateEditor } from "platejs/react"
 
 import {
@@ -25,6 +25,11 @@ import {
   clearContextHighlightBlockIds,
   setContextHighlightBlockIds,
 } from "@/lib/ai-context-block-highlight"
+
+export type MentionAnswerContext = {
+  question: string
+  contextMarkdown: string
+}
 
 async function fetchContextSelectorResult(
   mentionBlockMarkdown: string,
@@ -59,44 +64,32 @@ function getMentionBlockMarkdown(editor: PlateEditor, mentionPath: Path) {
   })
 }
 
-function buildContinueWritingPrompt(
-  mentionBlockMarkdown: string,
-  contextMarkdown: string,
-  hasDocumentContext: boolean
-) {
-  if (!hasDocumentContext) {
-    const instruction = mentionBlockMarkdown.trim()
+export function extractQuestionFromMentionBlock(
+  editor: PlateEditor,
+  mentionPath: Path
+): string {
+  const mentionEntry = editor.api.node(mentionPath)
+  if (!mentionEntry) return ""
 
-    if (instruction) {
-      return `${instruction}
+  const block = mentionEntry[0]
+  if (!ElementApi.isElement(block) || !block.children) return ""
 
-<Document>
-</Document>`
-    }
+  const mentionType = editor.getType(KEYS.mention)
+  const parts: string[] = []
 
-    return `Start writing a new paragraph. Write only the next part.
-
-<Document>
-</Document>`
+  for (const child of block.children) {
+    if (ElementApi.isElement(child) && child.type === mentionType) continue
+    const text = NodeApi.string(child).trim()
+    if (text) parts.push(text)
   }
 
-  if (contextMarkdown.trim()) {
-    return `Continue writing after the content below. Write only the next part. Do not repeat existing text.
-
-<Document>
-${contextMarkdown}
-</Document>`
-  }
-
-  return `Start writing a new paragraph. Write only the next part.
-
-<Document>
-</Document>`
+  return parts.join(" ").trim()
 }
 
-function logMentionContinueWritingDebug({
+function logMentionAnswerDebug({
   mentionBlock,
   mentionBlockMarkdown,
+  question,
   mentionContext,
   valueAboveMention,
   selectorResult,
@@ -106,6 +99,7 @@ function logMentionContinueWritingDebug({
 }: {
   mentionBlock: unknown
   mentionBlockMarkdown: string
+  question: string
   mentionContext: MentionAIContext
   valueAboveMention: unknown
   selectorResult: ContextSelectorResult
@@ -113,9 +107,10 @@ function logMentionContinueWritingDebug({
   selectedBlockText: string
   selectedBlocks: { id: string; text: string }[]
 }) {
-  console.log("[mention continue writing]", {
+  console.log("[mention answer]", {
     mentionBlock,
     mentionBlockMarkdown,
+    question,
     mention: {
       model: mentionContext["model-name"],
       provider: mentionContext.provider,
@@ -128,7 +123,7 @@ function logMentionContinueWritingDebug({
   })
 }
 
-export async function triggerMentionContinueWriting(
+export async function triggerMentionAnswer(
   editor: PlateEditor,
   mentionContext: MentionAIContext
 ) {
@@ -145,14 +140,15 @@ export async function triggerMentionContinueWriting(
   if (!findLastMentionInBlock(editor, mentionPath)) return
 
   // open must be true before submit so withAIChat does not strip ai marks on normalize.
-  editor.setOption(AIChatPlugin, 'mode', 'insert')
-  editor.setOption(AIChatPlugin, 'open', true)
+  editor.setOption(AIChatPlugin, "mode", "insert")
+  editor.setOption(AIChatPlugin, "open", true)
   setSelectingContext(editor, true)
 
   try {
     const mentionEntry = editor.api.node(mentionPath)
     const mentionBlock = mentionEntry?.[0] ?? null
     const mentionBlockMarkdown = getMentionBlockMarkdown(editor, mentionPath)
+    const question = extractQuestionFromMentionBlock(editor, mentionPath)
     const valueAboveMention = getValueAboveMentionBlock(editor, mentionPath)
 
     const selectorResult = await fetchContextSelectorResult(
@@ -171,16 +167,17 @@ export async function triggerMentionContinueWriting(
 
     const selectedBlockText = hasDocumentContext
       ? serializeMd(editor, { value: selectedValue })
-      : ''
+      : ""
 
     const selectedBlocks = selectedValue.map((block) => ({
-      id: String(block.id ?? ''),
+      id: String(block.id ?? ""),
       text: NodeApi.string(block).trim(),
     }))
 
-    logMentionContinueWritingDebug({
+    logMentionAnswerDebug({
       mentionBlock,
       mentionBlockMarkdown,
+      question,
       mentionContext,
       valueAboveMention,
       selectorResult,
@@ -193,18 +190,11 @@ export async function triggerMentionContinueWriting(
 
     const contextMarkdown = selectedBlockText
 
-    const prompt = buildContinueWritingPrompt(
-      mentionBlockMarkdown,
-      contextMarkdown,
-      hasDocumentContext
-    )
-
     clearSelectingContext(editor)
 
-    void editor.getApi(AIChatPlugin).aiChat.submit('', {
-      mode: 'insert',
-      toolName: 'generate',
-      prompt,
+    void editor.getApi(AIChatPlugin).aiChat.submit(question, {
+      mode: "insert",
+      toolName: "generate",
       options: {
         body: {
           apiKey: apikey,
@@ -213,7 +203,11 @@ export async function triggerMentionContinueWriting(
           ctx: {
             children: editor.children,
             selection: editor.selection,
-            toolName: 'generate',
+            toolName: "generate",
+            mentionAnswer: {
+              question,
+              contextMarkdown,
+            },
           },
         },
       },
@@ -221,6 +215,6 @@ export async function triggerMentionContinueWriting(
   } catch {
     clearSelectingContext(editor)
     clearContextHighlightBlockIds(editor)
-    editor.setOption(AIChatPlugin, 'open', false)
+    editor.setOption(AIChatPlugin, "open", false)
   }
 }

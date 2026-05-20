@@ -22,6 +22,7 @@ export function getMentionAnswerPrompt({
       You are an assistant embedded in a document editor.
       Answer the user's question directly. Use <context> as reference material when it is provided.
       Do NOT continue or extend the document prose unless the user explicitly asks you to write or continue content.
+      Your reply is inserted as body text in a single block: never use heading levels (h1-h6 or # Markdown headings).
     `,
     instruction,
     context,
@@ -52,7 +53,8 @@ export function getMentionAnswerPrompt({
     rules: dedent`
       ${commonGenerateRules}
       - Answer the question in <instruction>; do not repeat the question verbatim unless asked.
-      - Do NOT output Markdown headings (#, ##, ###, etc.) unless the user explicitly asks for a heading or outline.
+      - CRITICAL: Never output document headings. Forbidden: Markdown # through ######, and any h1/h2/h3/h4/h5/h6 block or tag. Headings break editor layout when streamed into a paragraph block.
+      - Use plain paragraphs, numbered lists, or bullet lists (- item) instead of titles or section headers.
       - Write in clear prose or lists as appropriate; stay concise unless the user asks for detail.
       - When <context> is empty or omitted, answer from general knowledge or the question alone.
       - Do NOT continue writing the document as if you are the author; respond as an assistant answering a question.

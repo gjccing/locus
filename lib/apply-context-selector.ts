@@ -197,7 +197,6 @@ export function selectContextBlockIds(
   const idLists = methods.map((method) =>
     applyOneMethod(ctx, method, result.keywords)
   )
-  debugger
 
   const merged = filterBlockIdsInDocOrder(ctx.value, ...idLists)
 

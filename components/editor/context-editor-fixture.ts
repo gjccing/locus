@@ -128,7 +128,7 @@ export const contextEditorZhFixture: Value = [
     listStyleType: "disc",
   },
   {
-    children: [{ text: "generate 階段：串流插入，禁止輸出 Markdown 一級標題除非使用者明確要求" }],
+    children: [{ text: "generate 階段：串流插入，禁止輸出 h1~h6 或 # 標題（會破壞段落排版）" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",

@@ -124,37 +124,42 @@ function applyOneMethod(
   method: ContextSelectorMethod,
   keywords?: string[]
 ): string[] {
-  const { value, anchorNode } = ctx
-
+  const { value, forest, anchorNode } = ctx
   switch (method) {
     case "getAboveValue":
       return blockIdsFromValue(value)
 
     case "getAboveValueWithKeywords": {
       if (!keywords?.length) return []
-      return blockIdsFromValue(
-        value.filter((element) => {
+      const matchingNodes = value
+        .filter((element) => {
           const text = element.children
             .map((child) => ("text" in child ? String(child.text) : ""))
             .join("")
           return keywords.some((keyword) => text.includes(keyword))
         })
-      )
+        .map((element) => findNodeByElement(forest, element))
+        .filter((node): node is Node => node !== null)
+      return collectBlockIdsFromNodes(matchingNodes)
     }
 
     case "getOlderSiblings": {
       if (!anchorNode) return []
-      return collectBlockIdsFromNodes(getOlderSiblings(anchorNode))
+      return getOlderSiblings(anchorNode).map(
+        (node) => node.element?.id as string
+      )
     }
 
     case "getAncestors": {
       if (!anchorNode) return []
-      return collectBlockIdsFromNodes(getAncestors(anchorNode))
+      return getAncestors(anchorNode).map((node) => node.element?.id as string)
     }
 
     case "getHeadingAncestors": {
       if (!anchorNode) return []
-      return collectBlockIdsFromNodes(getHeadingAncestors(anchorNode))
+      return getHeadingAncestors(anchorNode).map(
+        (node) => node.element?.id as string
+      )
     }
 
     default:
@@ -192,6 +197,7 @@ export function selectContextBlockIds(
   const idLists = methods.map((method) =>
     applyOneMethod(ctx, method, result.keywords)
   )
+  debugger
 
   const merged = filterBlockIdsInDocOrder(ctx.value, ...idLists)
 

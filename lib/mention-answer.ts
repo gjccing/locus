@@ -5,7 +5,7 @@ import type { PlateEditor } from "platejs/react"
 
 import {
   filterValueByBlockIds,
-  getValueAboveMentionBlock,
+  // getValueAboveMentionBlock,
   selectContextBlockIds,
 } from "@/lib/apply-context-selector"
 import {
@@ -86,42 +86,42 @@ export function extractQuestionFromMentionBlock(
   return parts.join(" ").trim()
 }
 
-function logMentionAnswerDebug({
-  mentionBlock,
-  mentionBlockMarkdown,
-  question,
-  mentionContext,
-  valueAboveMention,
-  selectorResult,
-  selectedBlockIds,
-  selectedBlockText,
-  selectedBlocks,
-}: {
-  mentionBlock: unknown
-  mentionBlockMarkdown: string
-  question: string
-  mentionContext: MentionAIContext
-  valueAboveMention: unknown
-  selectorResult: ContextSelectorResult
-  selectedBlockIds: string[]
-  selectedBlockText: string
-  selectedBlocks: { id: string; text: string }[]
-}) {
-  console.log("[mention answer]", {
-    mentionBlock,
-    mentionBlockMarkdown,
-    question,
-    mention: {
-      model: mentionContext["model-name"],
-      provider: mentionContext.provider,
-    },
-    valueAboveMention,
-    selectorResult,
-    selectedBlockIds,
-    selectedBlocks,
-    selectedBlockText,
-  })
-}
+// function logMentionAnswerDebug({
+//   mentionBlock,
+//   mentionBlockMarkdown,
+//   question,
+//   mentionContext,
+//   valueAboveMention,
+//   selectorResult,
+//   selectedBlockIds,
+//   selectedBlockText,
+//   selectedBlocks,
+// }: {
+//   mentionBlock: unknown
+//   mentionBlockMarkdown: string
+//   question: string
+//   mentionContext: MentionAIContext
+//   valueAboveMention: unknown
+//   selectorResult: ContextSelectorResult
+//   selectedBlockIds: string[]
+//   selectedBlockText: string
+//   selectedBlocks: { id: string; text: string }[]
+// }) {
+//   console.log("[mention answer]", {
+//     mentionBlock,
+//     mentionBlockMarkdown,
+//     question,
+//     mention: {
+//       model: mentionContext["model-name"],
+//       provider: mentionContext.provider,
+//     },
+//     valueAboveMention,
+//     selectorResult,
+//     selectedBlockIds,
+//     selectedBlocks,
+//     selectedBlockText,
+//   })
+// }
 
 export async function triggerMentionAnswer(
   editor: PlateEditor,
@@ -147,9 +147,11 @@ export async function triggerMentionAnswer(
   try {
     const mentionEntry = editor.api.node(mentionPath)
     const mentionBlock = mentionEntry?.[0] ?? null
+    if (mentionBlock?.id)
+      setContextHighlightBlockIds(editor, [mentionBlock.id as string])
     const mentionBlockMarkdown = getMentionBlockMarkdown(editor, mentionPath)
     const question = extractQuestionFromMentionBlock(editor, mentionPath)
-    const valueAboveMention = getValueAboveMentionBlock(editor, mentionPath)
+    // const valueAboveMention = getValueAboveMentionBlock(editor, mentionPath)
 
     const selectorResult = await fetchContextSelectorResult(
       mentionBlockMarkdown,
@@ -169,22 +171,22 @@ export async function triggerMentionAnswer(
       ? serializeMd(editor, { value: selectedValue })
       : ""
 
-    const selectedBlocks = selectedValue.map((block) => ({
-      id: String(block.id ?? ""),
-      text: NodeApi.string(block).trim(),
-    }))
+    // const selectedBlocks = selectedValue.map((block) => ({
+    //   id: String(block.id ?? ""),
+    //   text: NodeApi.string(block).trim(),
+    // }))
 
-    logMentionAnswerDebug({
-      mentionBlock,
-      mentionBlockMarkdown,
-      question,
-      mentionContext,
-      valueAboveMention,
-      selectorResult,
-      selectedBlockIds,
-      selectedBlockText,
-      selectedBlocks,
-    })
+    // logMentionAnswerDebug({
+    //   mentionBlock,
+    //   mentionBlockMarkdown,
+    //   question,
+    //   mentionContext,
+    //   valueAboveMention,
+    //   selectorResult,
+    //   selectedBlockIds,
+    //   selectedBlockText,
+    //   selectedBlocks,
+    // })
 
     setContextHighlightBlockIds(editor, selectedBlockIds)
 

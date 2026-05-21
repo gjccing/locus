@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import cloneDeep from 'lodash/cloneDeep.js';
 import { BaseAIPlugin, withAIBatch } from '@platejs/ai';
 import {
@@ -11,12 +12,13 @@ import {
   useChatChunk,
 } from '@platejs/ai/react';
 import { ElementApi, getPluginType, KEYS, PathApi, type Path } from 'platejs';
-import { type PlateEditor, usePluginOption } from 'platejs/react';
+import { type PlateEditor, usePlateSet, usePluginOption } from 'platejs/react';
 
 import { AILoadingBar } from '@/components/ui/ai-loading-bar';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { clearSelectingContext } from '@/lib/ai-selecting-context';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
+import { isMentionAnswerBusy } from '@/lib/mention-answer';
 
 import { useChat } from '../use-chat';
 import { aiChatPlugin } from './ai-chat-plugin';
@@ -138,8 +140,27 @@ export const aiChatPluginWithHooks = aiChatPlugin.extend({
   useHooks: ({ editor, getOption }) => {
     useChat();
 
+    const setReadOnly = usePlateSet('readOnly');
     const mode = usePluginOption(AIChatPlugin, 'mode');
     const toolName = usePluginOption(AIChatPlugin, 'toolName');
+    const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
+    const chat = usePluginOption(AIChatPlugin, 'chat');
+    const contextHighlightBlockIds = usePluginOption(
+      aiChatPlugin,
+      'contextHighlightBlockIds'
+    );
+
+    React.useEffect(() => {
+      setReadOnly(isMentionAnswerBusy(editor));
+    }, [
+      chat,
+      contextHighlightBlockIds,
+      editor,
+      mode,
+      selectingContext,
+      setReadOnly,
+    ]);
+
     useChatChunk({
       onChunk: ({ chunk, isFirst, nodes, text: content }) => {
         if (isFirst && mode === 'insert') {

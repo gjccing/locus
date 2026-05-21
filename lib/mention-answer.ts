@@ -17,8 +17,10 @@ import {
   findLastMentionInBlock,
   type MentionAIContext,
 } from "@/lib/mention-ai-context"
+import { aiChatPlugin } from "@/components/editor/plugins/ai-chat-plugin"
 import {
   clearSelectingContext,
+  isSelectingContext,
   setSelectingContext,
 } from "@/lib/ai-selecting-context"
 import {
@@ -29,6 +31,24 @@ import {
 export type MentionAnswerContext = {
   question: string
   contextMarkdown: string
+}
+
+export function isMentionAnswerBusy(editor: PlateEditor): boolean {
+  const mode = editor.getOption(AIChatPlugin, "mode")
+  if (mode !== "insert") return false
+
+  if (isSelectingContext(editor)) return true
+
+  const status = editor.getOption(AIChatPlugin, "chat")?.status
+  if (status === "streaming" || status === "submitted") return true
+
+  const contextHighlightBlockIds = editor.getOption(
+    aiChatPlugin,
+    "contextHighlightBlockIds"
+  )
+  if (contextHighlightBlockIds.length > 0) return true
+
+  return false
 }
 
 async function fetchContextSelectorResult(

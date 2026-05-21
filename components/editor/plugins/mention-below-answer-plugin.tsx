@@ -13,9 +13,7 @@ import {
   getMentionAIContext,
   type MentionAIContext,
 } from '@/lib/mention-ai-context';
-import { setSelectingContext } from '@/lib/ai-selecting-context';
 import { triggerMentionAnswer } from '@/lib/mention-answer';
-import { AIChatPlugin } from '@platejs/ai/react';
 import type { PlateEditor } from 'platejs/react';
 
 function willCreateBlockBelow(editor: SlateEditor, blockPath: Path) {
@@ -60,11 +58,6 @@ export const MentionBelowAnswerPlugin = createSlatePlugin({
         }
 
         const context = match as MentionAIContext;
-        const plateEditor = ctx.editor as PlateEditor;
-
-        plateEditor.setOption(AIChatPlugin, 'mode', 'insert');
-        plateEditor.setOption(AIChatPlugin, 'open', true);
-        setSelectingContext(plateEditor, true);
 
         queueMicrotask(() => {
           const block = ctx.editor.api.block();

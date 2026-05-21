@@ -7,15 +7,22 @@ import { useEditorPlugin, useHotkeys, usePluginOption } from 'platejs/react';
 import { Button } from '@/components/ui/button';
 import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
 import { stopInsertOrSelectingContext } from '@/lib/ai-selecting-context';
-import { isMentionAnswerBusy } from '@/lib/mention-answer';
 import { cn } from '@/lib/utils';
 
 export function AILoadingBar() {
   const { api, editor } = useEditorPlugin(AIChatPlugin);
   const chat = usePluginOption(AIChatPlugin, 'chat');
+  const mode = usePluginOption(AIChatPlugin, 'mode');
   const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
+  const contextHighlightBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextHighlightBlockIds'
+  );
+  const contextHighlighted = contextHighlightBlockIds.length > 0;
 
   const { status } = chat;
+
+  const isLoading = status === 'streaming' || status === 'submitted';
 
   const stopInsert = () => {
     stopInsertOrSelectingContext(editor, () => api.aiChat.stop());
@@ -23,7 +30,10 @@ export function AILoadingBar() {
 
   useHotkeys('esc', stopInsert);
 
-  if (isMentionAnswerBusy(editor)) {
+  if (
+    mode === 'insert' &&
+    (selectingContext || isLoading || contextHighlighted)
+  ) {
     const label = selectingContext
       ? 'Analyzing context...'
       : status === 'submitted'

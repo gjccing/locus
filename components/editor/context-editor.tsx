@@ -1,18 +1,20 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
+import type { Value } from "platejs"
 import { Plate, usePlateEditor } from "platejs/react"
 
-import { contextEditorZhFixture } from "@/components/editor/context-editor-fixture"
 import { ContextEditorKit } from "@/components/editor/context-editor-kit"
 import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-placeholder-kit"
 import { BlockSelectionShadowKeyboardFix } from "@/components/editor/plugins/block-selection-shadow-keyboard-fix"
 import { Editor, EditorContainer } from "@/components/ui/editor"
 import { EditorTocSidebar } from "@/components/ui/editor-toc-sidebar"
 
-export default function ContextEditor() {
+function ContextEditorLoaded({ value }: { value: Value }) {
   const editor = usePlateEditor({
     plugins: ContextEditorKit,
-    value: contextEditorZhFixture,
+    value,
   })
 
   return (
@@ -35,4 +37,22 @@ export default function ContextEditor() {
       </div>
     </Plate>
   )
+}
+
+export default function ContextEditor() {
+  const [initialValue, setInitialValue] = useState<Value | null>(null)
+
+  useEffect(() => {
+    void import("@/components/editor/context-editor-fixture").then(
+      ({ contextEditorZhFixture }) => {
+        setInitialValue(contextEditorZhFixture)
+      }
+    )
+  }, [])
+
+  if (!initialValue) {
+    return null
+  }
+
+  return <ContextEditorLoaded value={initialValue} />
 }

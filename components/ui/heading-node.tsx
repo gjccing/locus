@@ -5,7 +5,9 @@ import * as React from 'react';
 import type { PlateElementProps } from 'platejs/react';
 
 import { type VariantProps, cva } from 'class-variance-authority';
-import { PlateElement } from 'platejs/react';
+import { PlateElement, usePath } from 'platejs/react';
+
+import { tocPathToId } from '@/lib/toc-outline';
 
 const headingVariants = cva(
   'relative mb-1 data-[nav-target=true]:rounded-md data-[nav-target=true]:bg-(--color-highlight)',
@@ -27,12 +29,22 @@ export function HeadingElement({
   variant = 'h1',
   ...props
 }: PlateElementProps & VariantProps<typeof headingVariants>) {
+  const path = usePath();
+  const id =
+    (props.element.id as string | undefined) ??
+    (path ? tocPathToId(path) : undefined);
+
   return (
     <PlateElement
+      {...props}
       as={variant!}
       className={headingVariants({ variant })}
-      {...props}
+      attributes={{
+        ...props.attributes,
+        id,
+      }}
     >
+      {id ? <span id={id} className="sr-only" /> : null}
       {props.children}
     </PlateElement>
   );

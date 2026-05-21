@@ -7,6 +7,7 @@ import { ContextEditorKit } from "@/components/editor/context-editor-kit"
 import { CONTEXT_EDITOR_PLACEHOLDER } from "@/components/editor/plugins/block-placeholder-kit"
 import { BlockSelectionShadowKeyboardFix } from "@/components/editor/plugins/block-selection-shadow-keyboard-fix"
 import { Editor, EditorContainer } from "@/components/ui/editor"
+import { EditorTocSidebar } from "@/components/ui/editor-toc-sidebar"
 
 export default function ContextEditor() {
   const editor = usePlateEditor({
@@ -15,19 +16,23 @@ export default function ContextEditor() {
   })
 
   return (
-    <Plate editor={editor}
+    <Plate
+      editor={editor}
       onChange={({ value }) => {
         // console.log("value", JSON.stringify(value, null, 2))
       }}
     >
       <BlockSelectionShadowKeyboardFix />
-      <EditorContainer variant="default">
-        <Editor
-          className="pt-[calc(100vh-13rem)] pb-20"
-          variant="default"
-          placeholder={CONTEXT_EDITOR_PLACEHOLDER}
-        />
-      </EditorContainer>
+      <div className="relative h-full w-full">
+        <EditorContainer variant="default">
+          <Editor
+            className="pt-[calc(100vh-13rem)] pb-20"
+            variant="default"
+            placeholder={CONTEXT_EDITOR_PLACEHOLDER}
+          />
+        </EditorContainer>
+        <EditorTocSidebar className="right-10" />
+      </div>
     </Plate>
   )
 }

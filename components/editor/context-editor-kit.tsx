@@ -24,6 +24,7 @@ import { MentionBelowAnswerPlugin } from "@/components/editor/plugins/mention-be
 import { MentionKit } from "@/components/editor/plugins/mention-kit"
 import { SlashKit } from "@/components/editor/plugins/slash-kit"
 import { TableKit } from "@/components/editor/plugins/table-kit"
+import { TocSidebarKit } from "@/components/editor/plugins/toc-sidebar-kit"
 import { ToggleKit } from "@/components/editor/plugins/toggle-kit"
 
 /** Notion-style: block selection / drag, `/` (basic blocks), `@` mention, Markdown, DnD — no fixed/floating toolbars. */
@@ -52,4 +53,5 @@ export const ContextEditorKit = [
   TrailingBlockPlugin,
   ...MarkdownKit,
   ...BlockPlaceholderKit,
+  ...TocSidebarKit,
 ]

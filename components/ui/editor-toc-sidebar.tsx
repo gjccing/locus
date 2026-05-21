@@ -22,7 +22,7 @@ function isTocOutlineItem(item: Heading): item is TocOutlineItem {
 }
 
 export function EditorTocSidebar({ className }: { className?: string }) {
-  const state = useTocSideBarState({ topOffset: 80 });
+  const state = useTocSideBarState({});
   const { activeContentId, editor, headingList, mouseInToc, setMouseInToc } =
     state;
   const { navProps, onContentClick } = useTocSideBar(state);

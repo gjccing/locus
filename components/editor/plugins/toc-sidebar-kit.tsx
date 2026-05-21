@@ -9,7 +9,6 @@ export const TocSidebarKit = [
   TocPlugin.configure({
     options: {
       isScroll: true,
-      topOffset: 80,
       queryHeading: queryTocOutline,
     },
   }),

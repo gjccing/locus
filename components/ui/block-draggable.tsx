@@ -167,12 +167,12 @@ function Draggable(props: PlateElementProps) {
 
       <div
         ref={previewRef}
-        className={cn('-left-0 absolute hidden w-full')}
+        className={cn('-left-0 absolute hidden w-full px-2')}
         style={{ top: `${-previewTop}px` }}
         contentEditable={false}
       />
 
-      <div ref={nodeRef} className="slate-blockWrapper flow-root bg-white px-1">
+      <div ref={nodeRef} className="slate-blockWrapper flow-root bg-white px-2 shadow-xl group-first:rounded-t-md group-last:rounded-b-md group-last:shadow-sm">
         <MemoizedChildren>{children}</MemoizedChildren>
         <DropLine />
       </div>

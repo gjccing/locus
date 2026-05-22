@@ -120,25 +120,53 @@ const providerGroupLabel: Record<AIProvider, string> = {
   Groq: "Groq",
 };
 
-type MentionModelGroup = {
+function formatTokenHint(token: string) {
+  const trimmed = token.trim();
+  if (trimmed.length <= 8) return trimmed;
+  return `···${trimmed.slice(-4)}`;
+}
+
+function providerGroupLabelWithHint(provider: AIProvider, token: string) {
+  return `${providerGroupLabel[provider]} · ${formatTokenHint(token)}`;
+}
+
+type PassedApiKeyEntry = {
+  id: string;
   provider: AIProvider;
+  token: string;
+  groupLabel: string;
+};
+
+type MentionModelGroup = {
+  apiKeyId: string;
+  provider: AIProvider;
+  groupLabel: string;
+  token: string;
   models: { id: string; label: string }[];
 };
 
-function usePassedProviderKeys() {
+function usePassedApiKeys() {
   const apiKeys = useAppStore((s) => s.apiKeys);
 
   return React.useMemo(() => {
-    const map = new Map<AIProvider, string>();
+    const entries: PassedApiKeyEntry[] = [];
 
     for (const k of apiKeys) {
       if (k.status !== "passed" || !k.provider || !k.token?.trim()) continue;
-      if (!map.has(k.provider)) {
-        map.set(k.provider, k.token.trim());
-      }
+      const token = k.token.trim();
+      entries.push({
+        id: k.id,
+        provider: k.provider,
+        token,
+        groupLabel: providerGroupLabelWithHint(k.provider, token),
+      });
     }
 
-    return map;
+    return entries.sort((a, b) => {
+      const byProvider = a.provider.localeCompare(b.provider);
+      if (byProvider !== 0) return byProvider;
+      return a.groupLabel.localeCompare(b.groupLabel);
+    });
   }, [apiKeys]);
 }
 
@@ -151,30 +179,34 @@ function MentionComboboxModels({
 }) {
   const store = useComboboxContext()!;
   const open = store.useState("open");
-  const passedByProvider = usePassedProviderKeys();
+  const passedApiKeys = usePassedApiKeys();
 
   const groups = React.useMemo(() => {
-    if (!open || passedByProvider.size === 0) return [];
+    if (!open || passedApiKeys.length === 0) return [];
 
     const nextGroups: MentionModelGroup[] = [];
 
-    for (const provider of [...passedByProvider.keys()].sort((a, b) =>
-      a.localeCompare(b)
-    )) {
+    for (const apiKey of passedApiKeys) {
       const models = getMentionModelsForProvider(
-        provider,
+        apiKey.provider,
         MENTION_MODELS_PER_PROVIDER
       );
 
       if (models.length > 0) {
-        nextGroups.push({ provider, models });
+        nextGroups.push({
+          apiKeyId: apiKey.id,
+          provider: apiKey.provider,
+          groupLabel: apiKey.groupLabel,
+          token: apiKey.token,
+          models,
+        });
       }
     }
 
     return nextGroups;
-  }, [open, passedByProvider]);
+  }, [open, passedApiKeys]);
 
-  if (passedByProvider.size === 0) {
+  if (passedApiKeys.length === 0) {
     return (
       <>
         <InlineComboboxEmpty>
@@ -198,17 +230,15 @@ function MentionComboboxModels({
       <InlineComboboxEmpty>No matching models</InlineComboboxEmpty>
 
       {groups.map((g) => (
-        <InlineComboboxGroup key={g.provider}>
-          <InlineComboboxGroupLabel>
-            {providerGroupLabel[g.provider]}
-          </InlineComboboxGroupLabel>
+        <InlineComboboxGroup key={g.apiKeyId}>
+          <InlineComboboxGroupLabel>{g.groupLabel}</InlineComboboxGroupLabel>
           {g.models.map((m) => {
             const item = { key: m.id, text: m.id };
             return (
               <InlineComboboxItem
-                key={m.id}
-                group={providerGroupLabel[g.provider]}
-                keywords={[m.id, g.provider]}
+                key={`${g.apiKeyId}:${m.id}`}
+                group={g.groupLabel}
+                keywords={[m.id, g.provider, g.groupLabel]}
                 label={m.label}
                 value={m.label}
                 onClick={() =>
@@ -217,7 +247,7 @@ function MentionComboboxModels({
                     item,
                     search,
                     g.provider,
-                    passedByProvider.get(g.provider)!
+                    g.token
                   )
                 }
               >

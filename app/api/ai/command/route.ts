@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server"
 import { createGateway } from "@ai-sdk/gateway"
 import type { AIProvider } from "@/stores/app-store"
 import { createMentionLanguageModel } from "@/lib/mention-ai-model"
+import { isAllowedMentionModel } from "@/lib/mention-allowed-models"
 import { resolveMentionApiKey } from "@/lib/mention-trial"
 import {
   createUIMessageStream,
@@ -42,6 +43,14 @@ export async function POST(req: NextRequest) {
     selection,
     value: children,
   })
+
+  const modelId = typeof model === "string" ? model.trim() : ""
+  if (modelId && !isAllowedMentionModel(modelId)) {
+    return NextResponse.json(
+      { error: "Model is not available in the mention picker." },
+      { status: 400 }
+    )
+  }
 
   const mentionApiKey = resolveMentionApiKey(key)
   const gatewayApiKey =

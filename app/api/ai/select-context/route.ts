@@ -6,6 +6,7 @@ import { generateObject } from 'ai';
 import { NextResponse } from 'next/server';
 
 import { createMentionLanguageModel } from '@/lib/mention-ai-model';
+import { isAllowedMentionModel } from '@/lib/mention-allowed-models';
 import { resolveMentionApiKey } from '@/lib/mention-trial';
 import {
   contextSelectorResultSchema,
@@ -31,6 +32,14 @@ export async function POST(req: NextRequest) {
   if (!mentionBlockMarkdown?.trim()) {
     return NextResponse.json(
       { error: 'Missing mentionBlockMarkdown.' },
+      { status: 400 }
+    );
+  }
+
+  const modelId = model?.trim() ?? '';
+  if (!modelId || !isAllowedMentionModel(modelId)) {
+    return NextResponse.json(
+      { error: 'Model is not available in the mention picker.' },
       { status: 400 }
     );
   }

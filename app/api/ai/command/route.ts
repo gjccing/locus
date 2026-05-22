@@ -1,11 +1,14 @@
 import type { ChatMessage } from "@/components/editor/use-chat"
 import type { NextRequest } from "next/server"
 
-import { createGateway } from "@ai-sdk/gateway"
-import type { AIProvider } from "@/stores/app-store"
-import { createMentionLanguageModel } from "@/lib/mention-ai-model"
+import { createResolvedMentionLanguageModel } from "@/lib/mention-ai-model"
 import { isAllowedMentionModel } from "@/lib/mention-allowed-models"
-import { resolveMentionApiKey } from "@/lib/mention-trial"
+import {
+  getDefaultMentionGeminiApiKey,
+  isDefaultMentionApiKey,
+  resolveMentionApiKey,
+} from "@/lib/mention-trial"
+import type { AIProvider } from "@/stores/app-store"
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -52,15 +55,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const mentionApiKey = resolveMentionApiKey(key)
-  const gatewayApiKey =
-    mentionApiKey ?? process.env.AI_GATEWAY_API_KEY?.trim() ?? undefined
+  if (isDefaultMentionApiKey(key) && provider && provider !== "Gemini") {
+    return NextResponse.json(
+      { error: "Default mention API key only supports Gemini trial models." },
+      { status: 400 }
+    )
+  }
 
-  if (!gatewayApiKey) {
+  const mentionApiKey = resolveMentionApiKey(key)
+  const defaultGeminiKey = getDefaultMentionGeminiApiKey()
+
+  if (!mentionApiKey && !defaultGeminiKey) {
     return NextResponse.json(
       {
         error:
-          "Missing API key. Add one in settings or set AI_GATEWAY_API_KEY.",
+          "Missing API key. Add one in settings or set GOOGLE_GEMINI_KEY.",
       },
       { status: 401 }
     )
@@ -68,20 +77,17 @@ export async function POST(req: NextRequest) {
 
   const isSelecting = editor.api.isExpanded()
 
-  const gatewayProvider = createGateway({
-    apiKey: gatewayApiKey!,
-  })
+  const resolveModel = (resolvedModelId?: string) => {
+    const id =
+      resolvedModelId?.trim() ||
+      modelId ||
+      "gemini-2.5-flash-lite"
 
-  const resolveModel = (modelId?: string) => {
-    if (modelId && mentionApiKey && provider) {
-      return createMentionLanguageModel(
-        provider as AIProvider,
-        modelId,
-        mentionApiKey
-      )
-    }
-
-    return gatewayProvider(modelId || "openai/gpt-4o-mini")
+    return createResolvedMentionLanguageModel({
+      apiKey: key,
+      provider: provider as AIProvider | undefined,
+      modelId: id,
+    })
   }
 
   try {

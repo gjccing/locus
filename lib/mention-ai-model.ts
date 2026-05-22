@@ -6,6 +6,11 @@ import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 
 import type { AIProvider } from '@/stores/app-store';
+import {
+  assertDefaultMentionProvider,
+  getDefaultMentionGeminiApiKey,
+  resolveMentionApiKey,
+} from '@/lib/mention-trial';
 
 /** Strip Vercel AI Gateway-style prefixes for direct provider SDKs. */
 export function toDirectProviderModelId(
@@ -54,4 +59,33 @@ export function createMentionLanguageModel(
     default:
       return createGateway({ apiKey: key })(modelId);
   }
+}
+
+/** Resolves user mention key or GOOGLE_GEMINI_KEY for trial/default mentions. */
+export function createResolvedMentionLanguageModel({
+  apiKey,
+  provider,
+  modelId,
+}: {
+  apiKey?: string;
+  provider?: AIProvider;
+  modelId: string;
+}): LanguageModel {
+  const userKey = resolveMentionApiKey(apiKey);
+
+  if (userKey) {
+    if (!provider) {
+      throw new Error('Missing provider for mention model.');
+    }
+    return createMentionLanguageModel(provider, modelId, userKey);
+  }
+
+  assertDefaultMentionProvider(provider);
+
+  const geminiKey = getDefaultMentionGeminiApiKey();
+  if (!geminiKey) {
+    throw new Error('Missing GOOGLE_GEMINI_KEY.');
+  }
+
+  return createMentionLanguageModel('Gemini', modelId, geminiKey);
 }

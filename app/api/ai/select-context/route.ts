@@ -1,13 +1,16 @@
 import type { NextRequest } from 'next/server';
 
-import { createGateway } from '@ai-sdk/gateway';
 import { z } from 'zod';
 import { generateObject } from 'ai';
 import { NextResponse } from 'next/server';
 
-import { createMentionLanguageModel } from '@/lib/mention-ai-model';
+import { createResolvedMentionLanguageModel } from '@/lib/mention-ai-model';
 import { isAllowedMentionModel } from '@/lib/mention-allowed-models';
-import { resolveMentionApiKey } from '@/lib/mention-trial';
+import {
+  getDefaultMentionGeminiApiKey,
+  isDefaultMentionApiKey,
+  resolveMentionApiKey,
+} from '@/lib/mention-trial';
 import {
   contextSelectorResultSchema,
   parseContextSelectorResult,
@@ -44,36 +47,36 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const mentionApiKey = resolveMentionApiKey(apiKey);
-  const gatewayApiKey =
-    mentionApiKey ?? process.env.AI_GATEWAY_API_KEY?.trim() ?? undefined;
+  if (isDefaultMentionApiKey(apiKey) && provider && provider !== 'Gemini') {
+    return NextResponse.json(
+      { error: 'Default mention API key only supports Gemini trial models.' },
+      { status: 400 }
+    );
+  }
 
-  if (!gatewayApiKey) {
+  const mentionApiKey = resolveMentionApiKey(apiKey);
+  const defaultGeminiKey = getDefaultMentionGeminiApiKey();
+
+  if (!mentionApiKey && !defaultGeminiKey) {
     return NextResponse.json(
       {
         error:
-          'Missing API key. Add one in settings or set AI_GATEWAY_API_KEY.',
+          'Missing API key. Add one in settings or set GOOGLE_GEMINI_KEY.',
       },
       { status: 401 }
     );
   }
 
-  const gatewayProvider = createGateway({
-    apiKey: gatewayApiKey!,
+  const resolvedModel = createResolvedMentionLanguageModel({
+    apiKey,
+    provider,
+    modelId,
   });
-
-  const resolveModel = (modelId?: string) => {
-    if (modelId && mentionApiKey && provider) {
-      return createMentionLanguageModel(provider, modelId, mentionApiKey);
-    }
-
-    return gatewayProvider(modelId || 'openai/gpt-4o-mini');
-  };
 
   try {
     if (mode === 'keywords') {
       const { object } = await generateObject({
-        model: resolveModel(model),
+        model: resolvedModel,
         schema: contextSelectorKeywordsSchema,
         schemaName: 'ContextSelectorKeywords',
         schemaDescription:
@@ -88,7 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { object } = await generateObject({
-      model: resolveModel(model),
+      model: resolvedModel,
       schema: contextSelectorResultSchema,
       schemaName: 'ContextSelectorResult',
       schemaDescription:

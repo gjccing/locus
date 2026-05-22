@@ -1,7 +1,11 @@
 import type { AIProvider } from '@/stores/app-store';
 
-/** Stored on mention nodes; resolved server-side to AI_GATEWAY_API_KEY. */
+/** Stored on mention nodes; resolved server-side to GOOGLE_GEMINI_KEY. */
 export const MENTION_DEFAULT_API_KEY = 'default';
+
+export function getDefaultMentionGeminiApiKey(): string | undefined {
+  return process.env.GOOGLE_GEMINI_KEY?.trim() || undefined;
+}
 
 export const TRIAL_MODELS_GROUP = 'Trial models';
 
@@ -28,8 +32,14 @@ export function isDefaultMentionApiKey(apiKey: string | undefined): boolean {
   return !trimmed || trimmed === MENTION_DEFAULT_API_KEY;
 }
 
-/** User-provided mention key, or undefined to use the app default gateway key. */
+/** User-provided mention key, or undefined to use GOOGLE_GEMINI_KEY. */
 export function resolveMentionApiKey(apiKey: string | undefined): string | undefined {
   if (isDefaultMentionApiKey(apiKey)) return undefined;
   return apiKey!.trim();
+}
+
+export function assertDefaultMentionProvider(provider: AIProvider | undefined) {
+  if (provider && provider !== 'Gemini') {
+    throw new Error('Default mention API key only supports Gemini trial models.');
+  }
 }

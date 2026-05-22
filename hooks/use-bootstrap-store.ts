@@ -7,10 +7,12 @@ import { useAppStore } from "@/stores/app-store"
 export function useBootstrapStore() {
   const loadApiKeys = useAppStore((s) => s.apiKeysLoad)
   const saveApiKeys = useAppStore((s) => s.apiKeysSave)
+  const loadRecentMentionModels = useAppStore((s) => s.recentMentionModelsLoad)
 
   useEffect(() => {
     void loadApiKeys()
-  }, [loadApiKeys])
+    loadRecentMentionModels()
+  }, [loadApiKeys, loadRecentMentionModels])
 
   useEffect(() => {
     const handleBeforeUnload = () => {

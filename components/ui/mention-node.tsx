@@ -130,6 +130,16 @@ function providerGroupLabelWithHint(provider: AIProvider, token: string) {
   return `${providerGroupLabel[provider]} · ${formatTokenHint(token)}`;
 }
 
+function recentModelLabel(modelId: string, token: string) {
+  return `${modelId} · ${formatTokenHint(token)}`;
+}
+
+const RECENT_MODELS_GROUP = 'Recent';
+
+function recentModelKey(apiKeyId: string, modelId: string) {
+  return `${apiKeyId}:${modelId}`;
+}
+
 type PassedApiKeyEntry = {
   id: string;
   provider: AIProvider;
@@ -170,6 +180,45 @@ function usePassedApiKeys() {
   }, [apiKeys]);
 }
 
+function MentionModelItem({
+  editor,
+  search,
+  provider,
+  modelId,
+  apiKey,
+  group,
+  displayLabel,
+  keywords,
+  onSelect,
+}: {
+  editor: PlateElementProps<TComboboxInputElement>['editor'];
+  search: string;
+  provider: AIProvider;
+  modelId: string;
+  apiKey: string;
+  group: string;
+  displayLabel: string;
+  keywords: string[];
+  onSelect: () => void;
+}) {
+  const item = { key: modelId, text: modelId };
+
+  return (
+    <InlineComboboxItem
+      group={group}
+      keywords={keywords}
+      label={displayLabel}
+      value={displayLabel}
+      onClick={() => {
+        insertMentionWithAI(editor, item, search, provider, apiKey);
+        onSelect();
+      }}
+    >
+      <span className="truncate">{displayLabel}</span>
+    </InlineComboboxItem>
+  );
+}
+
 function MentionComboboxModels({
   editor,
   search,
@@ -180,9 +229,50 @@ function MentionComboboxModels({
   const store = useComboboxContext()!;
   const open = store.useState("open");
   const passedApiKeys = usePassedApiKeys();
+  const recentMentionModels = useAppStore((s) => s.recentMentionModels);
+  const addRecentMentionModel = useAppStore((s) => s.recentMentionModelsAdd);
 
-  const groups = React.useMemo(() => {
-    if (!open || passedApiKeys.length === 0) return [];
+  const passedById = React.useMemo(
+    () => new Map(passedApiKeys.map((k) => [k.id, k])),
+    [passedApiKeys]
+  );
+
+  const recordRecent = React.useCallback(
+    (apiKey: PassedApiKeyEntry, modelId: string) => {
+      addRecentMentionModel({
+        provider: apiKey.provider,
+        modelId,
+        apiKeyId: apiKey.id,
+      });
+    },
+    [addRecentMentionModel]
+  );
+
+  const { recentModels, groups } = React.useMemo(() => {
+    if (!open || passedApiKeys.length === 0) {
+      return { recentModels: [], groups: [] as MentionModelGroup[] };
+    }
+
+    const recentKeys = new Set<string>();
+    const recentModels: {
+      apiKey: PassedApiKeyEntry;
+      modelId: string;
+      displayLabel: string;
+    }[] = [];
+
+    for (const entry of recentMentionModels) {
+      const apiKey = passedById.get(entry.apiKeyId);
+      if (!apiKey) continue;
+
+      const key = recentModelKey(apiKey.id, entry.modelId);
+      if (recentKeys.has(key)) continue;
+      recentKeys.add(key);
+      recentModels.push({
+        apiKey,
+        modelId: entry.modelId,
+        displayLabel: recentModelLabel(entry.modelId, apiKey.token),
+      });
+    }
 
     const nextGroups: MentionModelGroup[] = [];
 
@@ -190,7 +280,7 @@ function MentionComboboxModels({
       const models = getMentionModelsForProvider(
         apiKey.provider,
         MENTION_MODELS_PER_PROVIDER
-      );
+      ).filter((m) => !recentKeys.has(recentModelKey(apiKey.id, m.id)));
 
       if (models.length > 0) {
         nextGroups.push({
@@ -203,8 +293,8 @@ function MentionComboboxModels({
       }
     }
 
-    return nextGroups;
-  }, [open, passedApiKeys]);
+    return { recentModels, groups: nextGroups };
+  }, [open, passedApiKeys, passedById, recentMentionModels]);
 
   if (passedApiKeys.length === 0) {
     return (
@@ -229,32 +319,55 @@ function MentionComboboxModels({
     <>
       <InlineComboboxEmpty>No matching models</InlineComboboxEmpty>
 
+      {recentModels.length > 0 && (
+        <InlineComboboxGroup>
+          <InlineComboboxGroupLabel>
+            {RECENT_MODELS_GROUP}
+          </InlineComboboxGroupLabel>
+          {recentModels.map((m) => (
+            <MentionModelItem
+              key={`recent:${m.apiKey.id}:${m.modelId}`}
+              editor={editor}
+              search={search}
+              provider={m.apiKey.provider}
+              modelId={m.modelId}
+              apiKey={m.apiKey.token}
+              group={RECENT_MODELS_GROUP}
+              displayLabel={m.displayLabel}
+              keywords={[m.modelId, m.apiKey.groupLabel, m.displayLabel]}
+              onSelect={() => recordRecent(m.apiKey, m.modelId)}
+            />
+          ))}
+        </InlineComboboxGroup>
+      )}
+
       {groups.map((g) => (
         <InlineComboboxGroup key={g.apiKeyId}>
           <InlineComboboxGroupLabel>{g.groupLabel}</InlineComboboxGroupLabel>
-          {g.models.map((m) => {
-            const item = { key: m.id, text: m.id };
-            return (
-              <InlineComboboxItem
-                key={`${g.apiKeyId}:${m.id}`}
-                group={g.groupLabel}
-                keywords={[m.id, g.provider, g.groupLabel]}
-                label={m.label}
-                value={m.label}
-                onClick={() =>
-                  insertMentionWithAI(
-                    editor,
-                    item,
-                    search,
-                    g.provider,
-                    g.token
-                  )
-                }
-              >
-                <span className="truncate">{m.label}</span>
-              </InlineComboboxItem>
-            );
-          })}
+          {g.models.map((m) => (
+            <MentionModelItem
+              key={`${g.apiKeyId}:${m.id}`}
+              editor={editor}
+              search={search}
+              provider={g.provider}
+              modelId={m.id}
+              apiKey={g.token}
+              group={g.groupLabel}
+              displayLabel={m.label}
+              keywords={[m.id, g.provider, g.groupLabel]}
+              onSelect={() =>
+                recordRecent(
+                  {
+                    id: g.apiKeyId,
+                    provider: g.provider,
+                    token: g.token,
+                    groupLabel: g.groupLabel,
+                  },
+                  m.id
+                )
+              }
+            />
+          ))}
         </InlineComboboxGroup>
       ))}
     </>

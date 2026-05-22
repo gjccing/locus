@@ -1,4 +1,4 @@
 # To-do list
 
-* Adjust the editor UI
-* Add description
+- Add description
+

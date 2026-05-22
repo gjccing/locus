@@ -19,16 +19,66 @@ import {
 } from "@/lib/mention-ai-context"
 import {
   clearSelectingContext,
+  isSelectingContext,
   setSelectingContext,
+  stopInsertOrSelectingContext,
 } from "@/lib/ai-selecting-context"
 import {
   clearContextHighlightBlockIds,
+  hasContextHighlight,
   setContextHighlightBlockIds,
 } from "@/lib/ai-context-block-highlight"
 
 export type MentionAnswerContext = {
   question: string
   contextMarkdown: string
+}
+
+/** True while a mention answer is selecting context or streaming a response. */
+export function isMentionAnswerBusy(editor: PlateEditor) {
+  if (editor.getOption(AIChatPlugin, "mode") !== "insert") return false
+  if (isSelectingContext(editor)) return true
+
+  const chat = editor.getOption(AIChatPlugin, "chat") as
+    | { status?: string }
+    | undefined
+  const status = chat?.status
+  if (status === "streaming" || status === "submitted") return true
+
+  return hasContextHighlight(editor)
+}
+
+export function stopMentionAnswer(editor: PlateEditor) {
+  stopInsertOrSelectingContext(editor, () => {
+    editor.getApi(AIChatPlugin).aiChat.stop()
+  })
+}
+
+function blockMentionAnswerUserInput(
+  editor: PlateEditor,
+  event: { key?: string; preventDefault: () => void }
+) {
+  if (!isMentionAnswerBusy(editor)) return
+
+  if (event.key === "Escape") {
+    stopMentionAnswer(editor)
+    event.preventDefault()
+    return true
+  }
+
+  event.preventDefault()
+  return true
+}
+
+/** Ignore typing and pointer input in the editor while a mention answer is active. */
+export function blockMentionAnswerInputIfBusy({
+  editor,
+  event,
+}: {
+  editor: PlateEditor
+  event: { key?: string; preventDefault: () => void }
+}) {
+  return blockMentionAnswerUserInput(editor, event)
 }
 
 async function fetchContextSelectorResult(

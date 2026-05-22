@@ -17,6 +17,7 @@ import { AILoadingBar } from '@/components/ui/ai-loading-bar';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { clearSelectingContext } from '@/lib/ai-selecting-context';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
+import { blockMentionAnswerInputIfBusy } from '@/lib/mention-answer';
 
 import { useChat } from '../use-chat';
 import { aiChatPlugin } from './ai-chat-plugin';
@@ -131,6 +132,18 @@ function finalizeInsertStream(editor: PlateEditor) {
 }
 
 export const aiChatPluginWithHooks = aiChatPlugin.extend({
+  handlers: {
+    onBeforeInput: blockMentionAnswerInputIfBusy,
+    onClick: blockMentionAnswerInputIfBusy,
+    onCompositionStart: blockMentionAnswerInputIfBusy,
+    onCut: blockMentionAnswerInputIfBusy,
+    onDOMBeforeInput: blockMentionAnswerInputIfBusy,
+    onDragStart: blockMentionAnswerInputIfBusy,
+    onDrop: blockMentionAnswerInputIfBusy,
+    onKeyDown: blockMentionAnswerInputIfBusy,
+    onMouseDown: blockMentionAnswerInputIfBusy,
+    onPaste: blockMentionAnswerInputIfBusy,
+  },
   render: {
     afterContainer: AILoadingBar,
     node: AIAnchorElement,

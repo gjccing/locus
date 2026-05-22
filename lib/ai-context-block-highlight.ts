@@ -12,3 +12,7 @@ export function setContextHighlightBlockIds(
 export function clearContextHighlightBlockIds(editor: PlateEditor) {
   editor.setOption(aiChatPlugin, 'contextHighlightBlockIds', []);
 }
+
+export function hasContextHighlight(editor: PlateEditor) {
+  return editor.getOption(aiChatPlugin, 'contextHighlightBlockIds').length > 0;
+}

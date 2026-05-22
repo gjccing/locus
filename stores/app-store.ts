@@ -17,7 +17,7 @@ export interface APIKeyInfo {
 const DEVICE_ID_KEY = "locus-device-id"
 const API_KEYS_KEY = "locus-api-keys"
 const RECENT_MENTION_MODELS_KEY = "locus-recent-mention-models"
-export const MAX_RECENT_MENTION_MODELS = 8
+export const MAX_RECENT_MENTION_MODELS = 3
 
 export type RecentMentionModel = {
   provider: AIProvider

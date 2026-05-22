@@ -28,7 +28,6 @@ function ContextEditorLoaded({ value }: { value: Value }) {
       <div className="relative h-full w-full">
         <EditorContainer variant="default">
           <Editor
-            className="pt-[calc(100vh-13rem)] pb-20"
             variant="default"
             placeholder={CONTEXT_EDITOR_PLACEHOLDER}
           />

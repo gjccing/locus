@@ -43,8 +43,8 @@ export default function ContextEditor() {
 
   useEffect(() => {
     void import("@/components/editor/context-editor-fixture").then(
-      ({ contextEditorZhFixture }) => {
-        setInitialValue(contextEditorZhFixture)
+      ({ contextEditorFixture }) => {
+        setInitialValue(contextEditorFixture)
       }
     )
   }, [])

@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         schema: contextSelectorKeywordsSchema,
         schemaName: 'ContextSelectorKeywords',
         schemaDescription:
-          'Search keywords to find relevant document blocks above the mention',
+          'Concrete terms likely to appear in note blocks above the mention, including question terms and alternate surface phrasings',
         prompt: getSelectContextKeywordsPrompt(mentionBlockMarkdown),
         temperature: 0,
       });

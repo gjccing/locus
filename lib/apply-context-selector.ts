@@ -8,7 +8,7 @@ import {
   getHeadingAncestors,
   getOlderSiblings,
 } from "@/lib/selectors"
-import { PathApi, type Path, type TElement, type Value } from "platejs"
+import { PathApi, NodeApi, type Path, type TElement, type Value } from "platejs"
 import type { PlateEditor } from "platejs/react"
 
 type EditorTreeContext = {
@@ -119,6 +119,10 @@ export function filterValueByBlockIds(value: Value, blockIds: string[]): Value {
   )
 }
 
+function getBlockSearchText(element: TElement): string {
+  return NodeApi.string(element).toLowerCase()
+}
+
 function applyOneMethod(
   ctx: EditorTreeContext,
   method: ContextSelectorMethod,
@@ -131,12 +135,13 @@ function applyOneMethod(
 
     case "getAboveValueWithKeywords": {
       if (!keywords?.length) return []
+      const normalizedKeywords = keywords.map((keyword) =>
+        keyword.toLowerCase()
+      )
       const matchingNodes = value
         .filter((element) => {
-          const text = element.children
-            .map((child) => ("text" in child ? String(child.text) : ""))
-            .join("")
-          return keywords.some((keyword) => text.includes(keyword))
+          const text = getBlockSearchText(element)
+          return normalizedKeywords.some((keyword) => text.includes(keyword))
         })
         .map((element) => findNodeByElement(forest, element))
         .filter((node): node is Node => node !== null)

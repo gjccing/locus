@@ -9,7 +9,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Locus lets you talk to AI right on the page. Most AI tools keep everything in a chat box—it's hard to control what the AI reads, and hard to work on more than one topic at a time. Locus turns your notes into editable blocks so you can explore many topics on one screen.",
+        text: "Talk to AI on the same page as your notes. No side chat—write, ask, and handle multiple topics in one place.",
       },
     ],
     type: "p",
@@ -31,7 +31,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "A free shared Gemini key is available to try things out. Everyone uses the same key, so it may run out",
+        text: "Or use the free shared Gemini key—everyone shares it, so it may run out",
       },
     ],
     type: "p",
@@ -42,7 +42,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Type " },
       { text: "@", code: true },
-      { text: " to choose a model, then write your question in the same line" },
+      { text: " to pick a model, then ask your question on the same line" },
     ],
     type: "p",
     indent: 1,
@@ -52,7 +52,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Press " },
       { text: "Enter", code: true },
-      { text: " key for a new line—the answer appears below" },
+      { text: " — the answer appears on the next line" },
     ],
     type: "p",
     indent: 1,
@@ -62,7 +62,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Press " },
       { text: "Esc", code: true },
-      { text: " key to stop" },
+      { text: " to stop" },
     ],
     type: "p",
     indent: 1,
@@ -74,22 +74,14 @@ export const contextEditorFixture: Value = [
   },
   {
     children: [
-      {
-        text: "Try these—press Enter at the end of a line to get an answer:",
-      },
-    ],
-    type: "p",
-  },
-  {
-    children: [
       { text: "" },
       {
         children: [{ text: "" }],
         apiKey: "default",
-        key: "google/gemini-2.5-flash-lite",
+        key: "google/gemma-4-31b-it",
         provider: "Gemini",
         type: "mention",
-        value: "google/gemini-2.5-flash-lite",
+        value: "google/gemma-4-31b-it",
       },
       { text: " What is Locus in one sentence?" },
     ],
@@ -98,11 +90,7 @@ export const contextEditorFixture: Value = [
     listStyleType: "disc",
   },
   {
-    children: [
-      {
-        text: "Another example:",
-      },
-    ],
+    children: [{ text: "Another example:" }],
     type: "p",
   },
   {
@@ -111,10 +99,10 @@ export const contextEditorFixture: Value = [
       {
         children: [{ text: "" }],
         apiKey: "default",
-        key: "google/gemini-2.5-flash-lite",
+        key: "google/gemma-4-31b-it",
         provider: "Gemini",
         type: "mention",
-        value: "google/gemini-2.5-flash-lite",
+        value: "google/gemma-4-31b-it",
       },
       { text: " What key stops the answer?" },
     ],
@@ -123,83 +111,51 @@ export const contextEditorFixture: Value = [
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Context" }],
+    children: [{ text: "How It Works" }],
     type: "h2",
   },
   {
     children: [
       {
-        text: "When you ask a question, Locus reads your headings and indentation, picks the notes that matter, and highlights them.",
+        text: "Before answering, Locus finds related notes on the page and highlights them.",
       },
     ],
     type: "p",
   },
   {
-    children: [
-      {
-        text: "Usually includes nearby text at the same level and parent sections",
-      },
-    ],
+    children: [{ text: "Nearby notes in the same section" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [
-      {
-        text: "If your question names a specific topic, it also searches above for matching content",
-      },
-    ],
+    children: [{ text: "Topics you mention in your question" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Controlling Context" }],
-    type: "h2",
-  },
-  {
-    children: [{ text: "Just change the layout:" }],
-    type: "p",
-  },
-  {
-    children: [
-      { text: "Indent → start a new thread; " },
-      { text: "@model", code: true },
-      { text: " questions in one thread won't affect another" },
-    ],
-    type: "p",
-    indent: 1,
-    listStyleType: "disc",
-  },
-  {
-    children: [{ text: "Headings → split the page into sections" }],
-    type: "p",
-    indent: 1,
-    listStyleType: "disc",
-  },
-  {
-    children: [{ text: "Multiple Topics" }],
+    children: [{ text: "Tips" }],
     type: "h2",
   },
   {
     children: [
-      { text: "Add " },
+      { text: "Indent to group notes; " },
       { text: "@model", code: true },
-      {
-        text: " anywhere on the page—each question only pulls from its own area",
-      },
+      { text: " questions in one group won't mix with another" },
     ],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [
-      { text: "Use the outline on the right to jump to headings and " },
-      { text: "@model", code: true },
-      { text: " spots" },
-    ],
+    children: [{ text: "Headings split the page into sections" }],
+    type: "p",
+    indent: 1,
+    listStyleType: "disc",
+  },
+  {
+    children: [{ text: "Use the outline on the right to jump around" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",

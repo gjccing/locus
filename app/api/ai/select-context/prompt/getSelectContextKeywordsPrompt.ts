@@ -1,44 +1,37 @@
-import dedent from 'dedent';
+import dedent from "dedent"
 
-import { buildStructuredPrompt } from '@/app/api/ai/command/utils';
+import { buildStructuredPrompt } from "@/app/api/ai/command/utils"
 
 export function getSelectContextKeywordsPrompt(mentionBlockMarkdown: string) {
   return buildStructuredPrompt({
     task: dedent`
-      You extract search keywords from a document-editor mention block.
-      The block contains an @model mention and the user's question.
-      Return keywords to find relevant blocks above the mention in the document.
+      From an @model mention block, return keywords for substring-search in notes above it.
+      Notes may use different wording than the question—expand into terms likely to appear in the text.
     `,
 
     context: mentionBlockMarkdown,
 
     rules: dedent`
-      - keywords is an array of strings used for substring match in block text above the mention.
-      - Return keywords: [] when the question needs no document lookup (jokes, general knowledge, or no meaningful question beyond the @mention).
-      - Prefer concise, distinctive terms: names, topics, phrases, section titles, or entities the user refers to.
-      - Do not include generic words ("above", "section", "content") unless they are the actual subject.
-      - Ignore the @model token when interpreting intent.
-      - NEVER copy keywords from examples verbatim.
+      - Include question terms when specific, plus alternate phrasing, synonyms, abbreviations, and related words for the same idea.
+      - When the question is abstract ("the key", "that step", "this section"), also add concrete forms notes may use instead.
     `,
 
     examples: [
       dedent`
-        <mentionBlock>@google/gemini-3.1-flash-lite</mentionBlock>
-        <output>{"keywords":[]}</output>
+        <mentionBlock>@openai/gpt-4o-mini what does the core metrics section say about latency?</mentionBlock>
+        <output>{"keywords":["core metrics","metrics","latency","P95","performance"]}</output>
       `,
       dedent`
-        <mentionBlock>@openai/gpt-4o-mini summarize machine learning content above</mentionBlock>
-        <output>{"keywords":["machine learning"]}</output>
+        <mentionBlock>@google/gemma-4-31b-it what does Getting Started say about API keys?</mentionBlock>
+        <output>{"keywords":["Getting Started","API key","Setting","OpenAI","Anthropic","Gemini","Groq"]}</output>
       `,
       dedent`
-        <mentionBlock>@google/gemini-3.1-flash-lite tell me a joke</mentionBlock>
-        <output>{"keywords":[]}</output>
+        <mentionBlock>@google/gemma-4-31b-it what key stops the answer?</mentionBlock>
+        <output>{"keywords":["stop","key","answer"]}</output>
       `,
     ],
 
-    instruction: dedent`
-      Analyze <context> and return keywords only.
-      Judge intent from the full block text — examples are illustrative, not exhaustive.
-    `,
-  });
+    instruction:
+      "Analyze <context>. Return keywords only—terms likely to match note text above, not paraphrases alone.",
+  })
 }

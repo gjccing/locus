@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 
 import { createGateway } from '@ai-sdk/gateway';
+import { z } from 'zod';
 import { generateObject } from 'ai';
 import { NextResponse } from 'next/server';
 
@@ -11,10 +12,16 @@ import {
 } from '@/lib/context-selector-types';
 import type { AIProvider } from '@/stores/app-store';
 
+import { getSelectContextKeywordsPrompt } from './prompt/getSelectContextKeywordsPrompt';
 import { getSelectContextPrompt } from './prompt/getSelectContextPrompt';
+
+const contextSelectorKeywordsSchema = z.object({
+  keywords: z.array(z.string()),
+});
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+  const mode = body.mode as string | undefined;
   const mentionBlockMarkdown = body.mentionBlockMarkdown as string | undefined;
   const apiKey = body.apiKey as string | undefined;
   const model = body.model as string | undefined;
@@ -54,6 +61,22 @@ export async function POST(req: NextRequest) {
   };
 
   try {
+    if (mode === 'keywords') {
+      const { object } = await generateObject({
+        model: resolveModel(model),
+        schema: contextSelectorKeywordsSchema,
+        schemaName: 'ContextSelectorKeywords',
+        schemaDescription:
+          'Search keywords to find relevant document blocks above the mention',
+        prompt: getSelectContextKeywordsPrompt(mentionBlockMarkdown),
+        temperature: 0,
+      });
+
+      return NextResponse.json(
+        contextSelectorKeywordsSchema.parse(object)
+      );
+    }
+
     const { object } = await generateObject({
       model: resolveModel(model),
       schema: contextSelectorResultSchema,

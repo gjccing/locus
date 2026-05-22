@@ -9,8 +9,7 @@ import {
   selectContextBlockIds,
 } from "@/lib/apply-context-selector"
 import {
-  DEFAULT_CONTEXT_SELECTOR_RESULT,
-  parseContextSelectorResult,
+  type ContextSelectorMethod,
   type ContextSelectorResult,
 } from "@/lib/context-selector-types"
 import {
@@ -81,6 +80,21 @@ export function blockMentionAnswerInputIfBusy({
   return blockMentionAnswerUserInput(editor, event)
 }
 
+const MENTION_FIXED_SELECTOR_METHODS = [
+  "getOlderSiblings",
+  "getAncestors",
+] as const satisfies readonly ContextSelectorMethod[]
+
+function buildMentionSelectorResult(keywords: string[]): ContextSelectorResult {
+  const methods: ContextSelectorMethod[] = [
+    ...MENTION_FIXED_SELECTOR_METHODS,
+  ]
+  if (keywords.length > 0) {
+    methods.unshift("getAboveValueWithKeywords")
+  }
+  return keywords.length > 0 ? { methods, keywords } : { methods }
+}
+
 async function fetchContextSelectorResult(
   mentionBlockMarkdown: string,
   mentionContext: MentionAIContext
@@ -90,6 +104,7 @@ async function fetchContextSelectorResult(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        mode: "keywords",
         mentionBlockMarkdown,
         apiKey: mentionContext.apikey,
         model: mentionContext["model-name"],
@@ -97,11 +112,19 @@ async function fetchContextSelectorResult(
       }),
     })
 
-    if (!res.ok) return DEFAULT_CONTEXT_SELECTOR_RESULT
+    if (!res.ok) return buildMentionSelectorResult([])
 
-    return parseContextSelectorResult(await res.json())
+    const data = (await res.json()) as { keywords?: unknown }
+    const keywords = Array.isArray(data.keywords)
+      ? data.keywords.filter(
+          (keyword): keyword is string =>
+            typeof keyword === "string" && keyword.trim().length > 0
+        )
+      : []
+
+    return buildMentionSelectorResult(keywords)
   } catch {
-    return DEFAULT_CONTEXT_SELECTOR_RESULT
+    return buildMentionSelectorResult([])
   }
 }
 

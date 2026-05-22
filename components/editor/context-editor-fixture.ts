@@ -99,7 +99,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "You can also ask about something written earlier on the page:",
+        text: "Another example:",
       },
     ],
     type: "p",

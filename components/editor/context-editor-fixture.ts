@@ -98,6 +98,14 @@ export const contextEditorFixture: Value = [
   },
   {
     children: [
+      {
+        text: "You can also ask about something written earlier on the page:",
+      },
+    ],
+    type: "p",
+  },
+  {
+    children: [
       { text: "" },
       {
         children: [{ text: "" }],

@@ -34,6 +34,7 @@ import {
   InlineComboboxInput,
   InlineComboboxItem,
 } from './inline-combobox';
+import type { FilterFn } from './inline-combobox';
 
 export function MentionElement(
   props: PlateElementProps<TMentionElement> & {
@@ -374,6 +375,12 @@ function MentionComboboxModels({
   );
 }
 
+
+
+const mentionFilter: FilterFn = ({ label }, search) => {
+  return label?.toLowerCase().includes(search.toLowerCase()) ?? false;
+};
+
 export function MentionInputElement(
   props: PlateElementProps<TComboboxInputElement>
 ) {
@@ -388,6 +395,7 @@ export function MentionInputElement(
         setValue={setSearch}
         showTrigger={false}
         trigger="@"
+        filter={mentionFilter}
       >
         <span className="inline-block rounded-md bg-muted px-1.5 py-0.5 align-baseline text-sm ring-ring focus-within:ring-2">
           <InlineComboboxInput />

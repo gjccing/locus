@@ -28,7 +28,7 @@ import { useComposedRef, useEditorRef } from 'platejs/react';
 
 import { cn } from '@/lib/utils';
 
-type FilterFn = (
+export type FilterFn = (
   item: { value: string; group?: string; keywords?: string[]; label?: string },
   search: string
 ) => boolean;

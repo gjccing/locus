@@ -6,6 +6,7 @@ import { generateObject } from 'ai';
 import { NextResponse } from 'next/server';
 
 import { createMentionLanguageModel } from '@/lib/mention-ai-model';
+import { resolveMentionApiKey } from '@/lib/mention-trial';
 import {
   contextSelectorResultSchema,
   parseContextSelectorResult,
@@ -34,11 +35,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const mentionApiKey = apiKey?.trim() || undefined;
+  const mentionApiKey = resolveMentionApiKey(apiKey);
   const gatewayApiKey =
     mentionApiKey ?? process.env.AI_GATEWAY_API_KEY?.trim() ?? undefined;
 
-  if (!gatewayApiKey && !mentionApiKey) {
+  if (!gatewayApiKey) {
     return NextResponse.json(
       {
         error:

@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server"
 import { createGateway } from "@ai-sdk/gateway"
 import type { AIProvider } from "@/stores/app-store"
 import { createMentionLanguageModel } from "@/lib/mention-ai-model"
+import { resolveMentionApiKey } from "@/lib/mention-trial"
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -42,11 +43,11 @@ export async function POST(req: NextRequest) {
     value: children,
   })
 
-  const mentionApiKey = key?.trim() || undefined
+  const mentionApiKey = resolveMentionApiKey(key)
   const gatewayApiKey =
     mentionApiKey ?? process.env.AI_GATEWAY_API_KEY?.trim() ?? undefined
 
-  if (!gatewayApiKey && !mentionApiKey) {
+  if (!gatewayApiKey) {
     return NextResponse.json(
       {
         error:

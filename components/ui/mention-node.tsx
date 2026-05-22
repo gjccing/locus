@@ -19,6 +19,12 @@ import {
   getMentionModelsForProvider,
   MENTION_MODELS_PER_PROVIDER,
 } from '@/lib/mention-models';
+import {
+  MENTION_DEFAULT_API_KEY,
+  TRIAL_MENTION_MODELS,
+  TRIAL_MODELS_GROUP,
+  TRIAL_RECENT_API_KEY_ID,
+} from '@/lib/mention-trial';
 import { cn } from '@/lib/utils';
 import { useMounted } from '@/hooks/use-mounted';
 import { inlineSuggestionVariants } from '@/lib/suggestion';
@@ -220,6 +226,15 @@ function MentionModelItem({
   );
 }
 
+const trialApiKeyEntry: PassedApiKeyEntry = {
+  id: TRIAL_RECENT_API_KEY_ID,
+  provider: TRIAL_MENTION_MODELS[0].provider,
+  token: MENTION_DEFAULT_API_KEY,
+  groupLabel: TRIAL_MODELS_GROUP,
+};
+
+const trialModelIds = new Set(TRIAL_MENTION_MODELS.map((m) => m.id));
+
 function MentionComboboxModels({
   editor,
   search,
@@ -233,10 +248,11 @@ function MentionComboboxModels({
   const recentMentionModels = useAppStore((s) => s.recentMentionModels);
   const addRecentMentionModel = useAppStore((s) => s.recentMentionModelsAdd);
 
-  const passedById = React.useMemo(
-    () => new Map(passedApiKeys.map((k) => [k.id, k])),
-    [passedApiKeys]
-  );
+  const passedById = React.useMemo(() => {
+    const map = new Map(passedApiKeys.map((k) => [k.id, k]));
+    map.set(TRIAL_RECENT_API_KEY_ID, trialApiKeyEntry);
+    return map;
+  }, [passedApiKeys]);
 
   const recordRecent = React.useCallback(
     (apiKey: PassedApiKeyEntry, modelId: string) => {
@@ -250,7 +266,7 @@ function MentionComboboxModels({
   );
 
   const { recentModels, groups } = React.useMemo(() => {
-    if (!open || passedApiKeys.length === 0) {
+    if (!open) {
       return { recentModels: [], groups: [] as MentionModelGroup[] };
     }
 
@@ -281,7 +297,11 @@ function MentionComboboxModels({
       const models = getMentionModelsForProvider(
         apiKey.provider,
         MENTION_MODELS_PER_PROVIDER
-      ).filter((m) => !recentKeys.has(recentModelKey(apiKey.id, m.id)));
+      ).filter(
+        (m) =>
+          !trialModelIds.has(m.id) &&
+          !recentKeys.has(recentModelKey(apiKey.id, m.id))
+      );
 
       if (models.length > 0) {
         nextGroups.push({
@@ -296,25 +316,6 @@ function MentionComboboxModels({
 
     return { recentModels, groups: nextGroups };
   }, [open, passedApiKeys, passedById, recentMentionModels]);
-
-  if (passedApiKeys.length === 0) {
-    return (
-      <>
-        <InlineComboboxEmpty>
-          Verify an API key (passed test) in settings to see models from{" "}
-          <a
-            className="underline underline-offset-2"
-            href="https://vercel.com/ai-gateway/models"
-            rel="noreferrer"
-            target="_blank"
-          >
-            the AI Gateway catalog
-          </a>
-          .
-        </InlineComboboxEmpty>
-      </>
-    );
-  }
 
   return (
     <>
@@ -341,6 +342,24 @@ function MentionComboboxModels({
           ))}
         </InlineComboboxGroup>
       )}
+
+      <InlineComboboxGroup key="trial-models">
+        <InlineComboboxGroupLabel>{TRIAL_MODELS_GROUP}</InlineComboboxGroupLabel>
+        {TRIAL_MENTION_MODELS.map((m) => (
+          <MentionModelItem
+            key={`trial:${m.id}`}
+            editor={editor}
+            search={search}
+            provider={m.provider}
+            modelId={m.id}
+            apiKey={m.apiKey}
+            group={TRIAL_MODELS_GROUP}
+            displayLabel={m.label}
+            keywords={[m.id, m.provider, TRIAL_MODELS_GROUP]}
+            onSelect={() => recordRecent(trialApiKeyEntry, m.id)}
+          />
+        ))}
+      </InlineComboboxGroup>
 
       {groups.map((g) => (
         <InlineComboboxGroup key={g.apiKeyId}>

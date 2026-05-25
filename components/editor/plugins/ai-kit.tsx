@@ -65,11 +65,9 @@ function focusBlockBelowAIResponse(
   streamBlockPath: Path | null
 ) {
   const streamRootIndex = streamBlockPath?.[0];
-  const belowIndex =
-    streamRootIndex !== undefined && streamRootIndex >= 0
-      ? streamRootIndex + 1
-      : editor.children.length;
+  if (streamRootIndex === undefined || streamRootIndex < 0) return;
 
+  const belowIndex = streamRootIndex + 1;
   const belowPath: Path = [belowIndex];
 
   if (!editor.api.node(belowPath)) {
@@ -108,6 +106,15 @@ export function rollbackInsertStreamOnError(editor: PlateEditor) {
 
   ai.undo();
   editor.getTransforms(AIChatPlugin).aiChat.removeAnchor();
+
+  const chatSelection = editor.getOption(AIChatPlugin, 'chatSelection') as
+    | { anchor: { path: Path; offset: number }; focus: { path: Path; offset: number } }
+    | null;
+  if (chatSelection) {
+    editor.tf.select(chatSelection);
+    editor.tf.focus();
+  }
+
   editor.setOption(AIChatPlugin, 'open', false);
   clearSelectingContext(editor);
   clearContextHighlightBlockIds(editor);
@@ -214,6 +221,17 @@ export const aiChatPluginWithHooks = aiChatPlugin.extend({
       },
       onFinish: () => {
         const chat = editor.getOption(AIChatPlugin, 'chat');
+        const cancelled = editor.getOption(
+          aiChatPlugin,
+          'insertStreamCancelled'
+        );
+
+        if (cancelled) {
+          editor.setOption(aiChatPlugin, 'insertStreamCancelled', false);
+          rollbackInsertStreamOnError(editor);
+          return;
+        }
+
         const failed = chat?.status === 'error';
 
         if (failed) {

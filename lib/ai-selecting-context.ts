@@ -1,5 +1,7 @@
 import type { PlateEditor } from 'platejs/react';
 
+import { AIChatPlugin } from '@platejs/ai/react';
+
 import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
 
@@ -33,5 +35,16 @@ export function stopInsertOrSelectingContext(
   }
 
   clearContextHighlightBlockIds(editor);
+
+  if (editor.getOption(AIChatPlugin, 'mode') === 'insert') {
+    const chat = editor.getOption(AIChatPlugin, 'chat') as
+      | { status?: string }
+      | undefined;
+    const status = chat?.status;
+    if (status === 'streaming' || status === 'submitted') {
+      editor.setOption(aiChatPlugin, 'insertStreamCancelled', true);
+    }
+  }
+
   stop();
 }

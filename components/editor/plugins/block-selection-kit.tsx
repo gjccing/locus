@@ -8,6 +8,7 @@ import {
   ContextBlockHighlight,
 } from '@/components/ui/block-selection';
 
+import { MarkdownCopyPlugin } from '@/components/editor/plugins/markdown-copy-plugin';
 import { BlockSelectionCopyFixPlugin } from '@/components/editor/plugins/block-selection-copy-fix';
 
 export const hasSelectableClass = ({
@@ -46,4 +47,5 @@ export const BlockSelectionKit = [
     },
   })),
   BlockSelectionCopyFixPlugin,
+  MarkdownCopyPlugin,
 ];

@@ -7,12 +7,13 @@ import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { Toaster } from "@/components/ui/sonner"
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: "Locus",
 }
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -35,6 +36,7 @@ export default function RootLayout({
         geist.variable
       )}
     >
+      <Analytics />
       <body className="h-dvh w-dvw">
         <ThemeProvider>
           <TooltipProvider>

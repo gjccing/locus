@@ -2,7 +2,7 @@
 
 import { AIChatPlugin } from '@platejs/ai/react';
 import { PauseIcon } from 'lucide-react';
-import { useEditorPlugin, useHotkeys, usePluginOption } from 'platejs/react';
+import { useEditorPlugin, usePluginOption } from 'platejs/react';
 
 import { Button } from '@/components/ui/button';
 import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
@@ -27,8 +27,6 @@ export function AILoadingBar() {
   const stopInsert = () => {
     stopInsertOrSelectingContext(editor, () => api.aiChat.stop());
   };
-
-  useHotkeys('esc', stopInsert);
 
   if (
     mode === 'insert' &&

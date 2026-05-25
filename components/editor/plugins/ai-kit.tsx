@@ -1,5 +1,7 @@
 'use client';
 
+import * as React from 'react';
+
 import cloneDeep from 'lodash/cloneDeep.js';
 import { BaseAIPlugin, withAIBatch } from '@platejs/ai';
 import {
@@ -17,7 +19,11 @@ import { AILoadingBar } from '@/components/ui/ai-loading-bar';
 import { AIAnchorElement, AILeaf } from '@/components/ui/ai-node';
 import { clearSelectingContext } from '@/lib/ai-selecting-context';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
-import { blockMentionAnswerInputIfBusy } from '@/lib/mention-answer';
+import {
+  blockMentionAnswerInputIfBusy,
+  isMentionAnswerBusy,
+  stopMentionAnswer,
+} from '@/lib/mention-answer';
 
 import { useChat } from '../use-chat';
 import { aiChatPlugin } from './ai-chat-plugin';
@@ -157,6 +163,21 @@ export const aiChatPluginWithHooks = aiChatPlugin.extend({
   },
   useHooks: ({ editor, getOption }) => {
     useChat();
+
+    React.useEffect(() => {
+      const onKeyDownCapture = (event: KeyboardEvent) => {
+        if (event.key !== 'Escape') return;
+        if (!isMentionAnswerBusy(editor)) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        stopMentionAnswer(editor);
+      };
+
+      document.addEventListener('keydown', onKeyDownCapture, true);
+      return () =>
+        document.removeEventListener('keydown', onKeyDownCapture, true);
+    }, [editor]);
 
     const mode = usePluginOption(AIChatPlugin, 'mode');
     const toolName = usePluginOption(AIChatPlugin, 'toolName');

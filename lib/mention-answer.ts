@@ -226,6 +226,9 @@ export async function triggerMentionAnswer(
     "mentionAnswerAbortController",
     abortController
   )
+  if (editor.selection) {
+    editor.setOption(aiChatPlugin, "mentionAnswerSelection", editor.selection)
+  }
   setSelectingContext(editor, true)
 
   try {
@@ -314,5 +317,6 @@ export async function triggerMentionAnswer(
     ) {
       editor.setOption(aiChatPlugin, "mentionAnswerAbortController", null)
     }
+    editor.setOption(aiChatPlugin, "mentionAnswerSelection", null)
   }
 }

@@ -1,9 +1,37 @@
-import type { PlateEditor } from 'platejs/react';
-
 import { AIChatPlugin } from '@platejs/ai/react';
+import { BlockSelectionPlugin } from '@platejs/selection/react';
+import type { TRange } from 'platejs';
+import type { PlateEditor } from 'platejs/react';
 
 import { aiChatPlugin } from '@/components/editor/plugins/ai-chat-plugin';
 import { clearContextHighlightBlockIds } from '@/lib/ai-context-block-highlight';
+
+function clearMentionAnswerBlockSelection(editor: PlateEditor) {
+  if (!editor.getOption(BlockSelectionPlugin, 'isSelectingSome')) return;
+
+  editor.getApi(BlockSelectionPlugin).blockSelection.deselect();
+  editor.tf.focus();
+}
+
+/** Restore the text cursor saved when a mention answer started. */
+export function restoreMentionAnswerTextSelection(editor: PlateEditor) {
+  clearMentionAnswerBlockSelection(editor);
+
+  const mentionSelection = editor.getOption(
+    aiChatPlugin,
+    'mentionAnswerSelection'
+  ) as TRange | null;
+  const chatSelection = editor.getOption(AIChatPlugin, 'chatSelection') as
+    | TRange
+    | null;
+
+  const selection = mentionSelection ?? chatSelection;
+  if (selection) {
+    editor.tf.select(selection);
+  }
+
+  editor.tf.focus();
+}
 
 export function clearSelectingContext(editor: PlateEditor) {
   editor.setOption(aiChatPlugin, 'selectingContext', false);
@@ -31,6 +59,7 @@ export function stopInsertOrSelectingContext(
     clearSelectingContext(editor);
     clearContextHighlightBlockIds(editor);
     editor.setOption(aiChatPlugin, 'open', false);
+    restoreMentionAnswerTextSelection(editor);
     return;
   }
 
@@ -47,4 +76,5 @@ export function stopInsertOrSelectingContext(
   }
 
   stop();
+  clearMentionAnswerBlockSelection(editor);
 }

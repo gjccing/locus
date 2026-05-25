@@ -1,11 +1,13 @@
 'use client';
 
 import { AIChatPlugin } from '@platejs/ai/react';
+import type { TRange } from 'platejs';
 
 export const aiChatPlugin = AIChatPlugin.extend({
   options: {
     selectingContext: false,
     mentionAnswerAbortController: null as AbortController | null,
+    mentionAnswerSelection: null as TRange | null,
     insertStreamCancelled: false,
     contextHighlightBlockIds: [] as string[],
     chatOptions: {

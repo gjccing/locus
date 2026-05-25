@@ -33,8 +33,17 @@ export function restoreMentionAnswerTextSelection(editor: PlateEditor) {
   editor.tf.focus();
 }
 
+function clearAnalyzingMentionKeywords(editor: PlateEditor) {
+  editor.setOption(aiChatPlugin, 'analyzingMentionKeywords', false);
+}
+
+export function setAnalyzingMentionKeywords(editor: PlateEditor, value: boolean) {
+  editor.setOption(aiChatPlugin, 'analyzingMentionKeywords', value);
+}
+
 export function clearSelectingContext(editor: PlateEditor) {
   editor.setOption(aiChatPlugin, 'selectingContext', false);
+  clearAnalyzingMentionKeywords(editor);
 }
 
 export function setSelectingContext(editor: PlateEditor, value: boolean) {

@@ -6,6 +6,7 @@ import type { TRange } from 'platejs';
 export const aiChatPlugin = AIChatPlugin.extend({
   options: {
     selectingContext: false,
+    analyzingMentionKeywords: false,
     mentionAnswerAbortController: null as AbortController | null,
     mentionAnswerSelection: null as TRange | null,
     insertStreamCancelled: false,

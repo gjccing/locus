@@ -20,6 +20,7 @@ import { aiChatPlugin } from "@/components/editor/plugins/ai-chat-plugin"
 import {
   clearSelectingContext,
   isSelectingContext,
+  setAnalyzingMentionKeywords,
   setSelectingContext,
   stopInsertOrSelectingContext,
 } from "@/lib/ai-selecting-context"
@@ -85,6 +86,10 @@ const MENTION_FIXED_SELECTOR_METHODS = [
   "getOlderSiblings",
   "getAncestors",
 ] as const satisfies readonly ContextSelectorMethod[]
+
+function buildFixedMentionSelectorResult(): ContextSelectorResult {
+  return { methods: [...MENTION_FIXED_SELECTOR_METHODS] }
+}
 
 function buildMentionSelectorResult(keywords: string[]): ContextSelectorResult {
   const methods: ContextSelectorMethod[] = [
@@ -240,11 +245,26 @@ export async function triggerMentionAnswer(
     const question = extractQuestionFromMentionBlock(editor, mentionPath)
     // const valueAboveMention = getValueAboveMentionBlock(editor, mentionPath)
 
-    const selectorResult = await fetchContextSelectorResult(
-      mentionBlockMarkdown,
-      mentionContext,
-      abortController.signal
+    const fixedBlockIds = selectContextBlockIds(
+      editor,
+      newPath,
+      buildFixedMentionSelectorResult()
     )
+    if (fixedBlockIds.length > 0) {
+      setContextHighlightBlockIds(editor, fixedBlockIds)
+    }
+
+    setAnalyzingMentionKeywords(editor, true)
+    let selectorResult: ContextSelectorResult
+    try {
+      selectorResult = await fetchContextSelectorResult(
+        mentionBlockMarkdown,
+        mentionContext,
+        abortController.signal
+      )
+    } finally {
+      setAnalyzingMentionKeywords(editor, false)
+    }
 
     if (abortController.signal.aborted) return
 

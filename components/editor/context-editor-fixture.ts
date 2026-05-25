@@ -9,10 +9,47 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Ask AI on the same page as your notes. No side chat—keep everything in one place.",
+        text: "Organize notes and AI answers on one editable page.",
       },
     ],
     type: "p",
+  },
+  {
+    children: [{ text: "Why Locus" }],
+    type: "h2",
+  },
+  {
+    children: [
+      { text: "Edit AI replies", bold: true },
+      {
+        text: " — rewrite, trim, or restructure any answer directly on the page",
+      },
+    ],
+    type: "p",
+    indent: 1,
+    listStyleType: "disc",
+  },
+  {
+    children: [
+      { text: "Topics stay isolated", bold: true },
+      {
+        text: " — context is pulled from your page structure, so different topics don't bleed into each other",
+      },
+    ],
+    type: "p",
+    indent: 1,
+    listStyleType: "disc",
+  },
+  {
+    children: [
+      { text: "Conclusions live on the page", bold: true },
+      {
+        text: " — reorganize replies into your own notes anytime",
+      },
+    ],
+    type: "p",
+    indent: 1,
+    listStyleType: "disc",
   },
   {
     children: [{ text: "Getting Started" }],
@@ -31,7 +68,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Or use the free shared Gemini key—it’s limited and shared with everyone",
+        text: "Or use the built-in free Gemini key—rate-limited and shared",
       },
     ],
     type: "p",
@@ -42,7 +79,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Type " },
       { text: "@", code: true },
-      { text: " to pick a model, then ask on the same line" },
+      { text: " to pick a model, then write your question on the same line" },
     ],
     type: "p",
     indent: 1,
@@ -52,7 +89,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Press " },
       { text: "Enter", code: true },
-      { text: " — the answer shows on the next line" },
+      { text: " to send — the answer appears on the next line" },
     ],
     type: "p",
     indent: 1,
@@ -117,22 +154,42 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Before answering, Locus finds related notes and highlights them.",
+        text: "Before answering, Locus finds relevant notes and highlights them. Context comes from two places:",
       },
     ],
     type: "p",
   },
   {
-    children: [{ text: "Notes nearby in the same section" }],
+    children: [
+      { text: "Page structure: ", bold: true },
+      {
+        text: "notes above your question at the same level, plus any parent blocks they're nested under",
+      },
+    ],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Words from your question" }],
+    children: [
+      { text: "Keyword matching: ", bold: true },
+      {
+        text: "terms from your question are searched upward through the page",
+      },
+    ],
     type: "p",
     indent: 1,
     listStyleType: "disc",
+  },
+  {
+    children: [
+      { text: "This ensures each " },
+      { text: "@", code: true },
+      {
+        text: " question stays tied to the notes around it.",
+      },
+    ],
+    type: "p",
   },
   {
     children: [{ text: "Tips" }],
@@ -140,20 +197,18 @@ export const contextEditorFixture: Value = [
   },
   {
     children: [
-      { text: "Indent to group notes—each group stays separate" },
+      { text: "Use headings and indent to structure your page—the more you nest, the tighter the context for each " },
+      { text: "@", code: true },
+      { text: " question" },
     ],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Headings create sections" }],
-    type: "p",
-    indent: 1,
-    listStyleType: "disc",
-  },
-  {
-    children: [{ text: "Use the outline on the right to jump around" }],
+    children: [
+      { text: "Use the outline on the right to navigate between sections" },
+    ],
     type: "p",
     indent: 1,
     listStyleType: "disc",

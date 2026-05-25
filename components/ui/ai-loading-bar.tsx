@@ -14,6 +14,10 @@ export function AILoadingBar() {
   const chat = usePluginOption(AIChatPlugin, 'chat');
   const mode = usePluginOption(AIChatPlugin, 'mode');
   const selectingContext = usePluginOption(aiChatPlugin, 'selectingContext');
+  const analyzingMentionKeywords = usePluginOption(
+    aiChatPlugin,
+    'analyzingMentionKeywords'
+  );
   const contextHighlightBlockIds = usePluginOption(
     aiChatPlugin,
     'contextHighlightBlockIds'
@@ -32,11 +36,13 @@ export function AILoadingBar() {
     mode === 'insert' &&
     (selectingContext || isLoading || contextHighlighted)
   ) {
-    const label = selectingContext
-      ? 'Analyzing context...'
-      : status === 'submitted'
-        ? 'Thinking...'
-        : 'Answering...';
+    const label = analyzingMentionKeywords
+      ? 'Fetching keywords...'
+      : selectingContext
+        ? 'Selecting context...'
+        : status === 'submitted'
+          ? 'Thinking...'
+          : 'Answering...';
 
     return (
       <div

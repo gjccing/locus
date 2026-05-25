@@ -9,7 +9,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Talk to AI on the same page as your notes. No side chat—write, ask, and handle multiple topics in one place.",
+        text: "Ask AI on the same page as your notes. No side chat—keep everything in one place.",
       },
     ],
     type: "p",
@@ -31,7 +31,7 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Or use the free shared Gemini key—everyone shares it, so it may run out",
+        text: "Or use the free shared Gemini key—it’s limited and shared with everyone",
       },
     ],
     type: "p",
@@ -42,7 +42,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Type " },
       { text: "@", code: true },
-      { text: " to pick a model, then ask your question on the same line" },
+      { text: " to pick a model, then ask on the same line" },
     ],
     type: "p",
     indent: 1,
@@ -52,7 +52,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Press " },
       { text: "Enter", code: true },
-      { text: " — the answer appears on the next line" },
+      { text: " — the answer shows on the next line" },
     ],
     type: "p",
     indent: 1,
@@ -104,7 +104,7 @@ export const contextEditorFixture: Value = [
         type: "mention",
         value: "google/gemma-4-31b-it",
       },
-      { text: " What key stops the answer?" },
+      { text: " Which key stops the answer?" },
     ],
     type: "p",
     indent: 1,
@@ -117,19 +117,19 @@ export const contextEditorFixture: Value = [
   {
     children: [
       {
-        text: "Before answering, Locus finds related notes on the page and highlights them.",
+        text: "Before answering, Locus finds related notes and highlights them.",
       },
     ],
     type: "p",
   },
   {
-    children: [{ text: "Nearby notes in the same section" }],
+    children: [{ text: "Notes nearby in the same section" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Topics you mention in your question" }],
+    children: [{ text: "Words from your question" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",
@@ -140,16 +140,14 @@ export const contextEditorFixture: Value = [
   },
   {
     children: [
-      { text: "Indent to group notes; " },
-      { text: "@model", code: true },
-      { text: " questions in one group won't mix with another" },
+      { text: "Indent to group notes—each group stays separate" },
     ],
     type: "p",
     indent: 1,
     listStyleType: "disc",
   },
   {
-    children: [{ text: "Headings split the page into sections" }],
+    children: [{ text: "Headings create sections" }],
     type: "p",
     indent: 1,
     listStyleType: "disc",

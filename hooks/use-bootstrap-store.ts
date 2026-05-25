@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { flushEditorContent } from "@/lib/editor-persistence"
 import { useAppStore } from "@/stores/app-store"
 
 // Bootstraps store slices that need async initialization and persistence hooks.
@@ -16,6 +17,7 @@ export function useBootstrapStore() {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
+      flushEditorContent()
       void saveApiKeys()
     }
 

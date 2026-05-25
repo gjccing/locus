@@ -2,6 +2,8 @@
 
 import { create } from "zustand"
 import { decryptData, encryptData } from "@/lib/crypto-client"
+import { DEVICE_ID_KEY, getOrCreateDeviceId } from "@/lib/device-id"
+import { clearEditorContent } from "@/lib/editor-persistence"
 
 export type ConfigStatus = "passed" | "error" | "idle"
 
@@ -14,7 +16,6 @@ export interface APIKeyInfo {
   status: ConfigStatus
 }
 
-const DEVICE_ID_KEY = "locus-device-id"
 const API_KEYS_KEY = "locus-api-keys"
 const RECENT_MENTION_MODELS_KEY = "locus-recent-mention-models"
 export const MAX_RECENT_MENTION_MODELS = 3
@@ -36,6 +37,7 @@ function clearLocusLocalStorage() {
   localStorage.removeItem(DEVICE_ID_KEY)
   localStorage.removeItem(API_KEYS_KEY)
   localStorage.removeItem(RECENT_MENTION_MODELS_KEY)
+  clearEditorContent()
 
   for (let i = localStorage.length - 1; i >= 0; i--) {
     const key = localStorage.key(i)
@@ -63,7 +65,11 @@ type RecentMentionModelsSlice = {
   recentMentionModelsAdd: (entry: RecentMentionModel) => void
 }
 
-export type AppState = ApiKeysSlice & RecentMentionModelsSlice
+type EditorSessionSlice = {
+  editorSessionKey: number
+}
+
+export type AppState = ApiKeysSlice & RecentMentionModelsSlice & EditorSessionSlice
 
 function parseRecentMentionModels(raw: string): RecentMentionModel[] {
   try {
@@ -96,16 +102,8 @@ function saveRecentMentionModels(models: RecentMentionModel[]) {
   localStorage.setItem(RECENT_MENTION_MODELS_KEY, JSON.stringify(models))
 }
 
-function getOrCreateDeviceId(): string {
-  let id = localStorage.getItem(DEVICE_ID_KEY)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(DEVICE_ID_KEY, id)
-  }
-  return id
-}
-
 export const useAppStore = create<AppState>((set, get) => ({
+  editorSessionKey: 0,
   apiKeys: [],
   apiKeysIsLoaded: false,
 
@@ -142,12 +140,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   apiKeysClearAll: async () => {
     clearLocusLocalStorage()
-    set({
+    set((prev) => ({
       apiKeys: [],
       apiKeysIsLoaded: true,
       recentMentionModels: [],
       recentMentionModelsIsLoaded: true,
-    })
+      editorSessionKey: prev.editorSessionKey + 1,
+    }))
   },
 
   apiKeysAdd: async (apiKey) => {

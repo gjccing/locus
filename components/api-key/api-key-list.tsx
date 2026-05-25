@@ -6,7 +6,7 @@ import { PlusIcon } from "@primer/octicons-react"
 import { useEffect, useRef } from "react"
 import { useAppStore } from "@/stores/app-store"
 
-import { Small } from "@/components/ui/typography"
+import { Small, Muted } from "@/components/ui/typography"
 
 export function ApiKeyList() {
   const apiKeys = useAppStore((s) => s.apiKeys)
@@ -55,6 +55,9 @@ export function ApiKeyList() {
         <PlusIcon />
         Add New Key
       </Button>
+      <Muted>
+        Your key is stored locally and only sent per-request; we don&apos;t persist it on the server.
+      </Muted>
     </div>
   )
 }

@@ -16,6 +16,7 @@ import {
   findLastMentionInBlock,
   type MentionAIContext,
 } from "@/lib/mention-ai-context"
+import { aiChatPlugin } from "@/components/editor/plugins/ai-chat-plugin"
 import {
   clearSelectingContext,
   isSelectingContext,
@@ -97,7 +98,8 @@ function buildMentionSelectorResult(keywords: string[]): ContextSelectorResult {
 
 async function fetchContextSelectorResult(
   mentionBlockMarkdown: string,
-  mentionContext: MentionAIContext
+  mentionContext: MentionAIContext,
+  signal?: AbortSignal
 ): Promise<ContextSelectorResult> {
   try {
     const res = await fetch("/api/ai/select-context", {
@@ -110,6 +112,7 @@ async function fetchContextSelectorResult(
         model: mentionContext["model-name"],
         provider: mentionContext.provider,
       }),
+      signal,
     })
 
     if (!res.ok) return buildMentionSelectorResult([])
@@ -123,7 +126,8 @@ async function fetchContextSelectorResult(
       : []
 
     return buildMentionSelectorResult(keywords)
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) throw error
     return buildMentionSelectorResult([])
   }
 }
@@ -215,6 +219,13 @@ export async function triggerMentionAnswer(
   // open must be true before submit so withAIChat does not strip ai marks on normalize.
   editor.setOption(AIChatPlugin, "mode", "insert")
   editor.setOption(AIChatPlugin, "open", true)
+
+  const abortController = new AbortController()
+  editor.setOption(
+    aiChatPlugin,
+    "mentionAnswerAbortController",
+    abortController
+  )
   setSelectingContext(editor, true)
 
   try {
@@ -228,8 +239,11 @@ export async function triggerMentionAnswer(
 
     const selectorResult = await fetchContextSelectorResult(
       mentionBlockMarkdown,
-      mentionContext
+      mentionContext,
+      abortController.signal
     )
+
+    if (abortController.signal.aborted) return
 
     const hasDocumentContext = selectorResult.methods.length > 0
     const selectedBlockIds = hasDocumentContext
@@ -288,8 +302,17 @@ export async function triggerMentionAnswer(
       },
     })
   } catch {
+    if (abortController.signal.aborted) return
+
     clearSelectingContext(editor)
     clearContextHighlightBlockIds(editor)
     editor.setOption(AIChatPlugin, "open", false)
+  } finally {
+    if (
+      editor.getOption(aiChatPlugin, "mentionAnswerAbortController") ===
+      abortController
+    ) {
+      editor.setOption(aiChatPlugin, "mentionAnswerAbortController", null)
+    }
   }
 }

@@ -24,30 +24,29 @@ export function getMentionAIContext(
   };
 }
 
-export function findLastMentionInNode(
+export function findFirstMentionInNode(
   editor: SlateEditor,
   _root: TNode,
   at: Path
 ): TMentionElementWithAI | undefined {
   const mentionType = editor.getType(KEYS.mention);
-  let last: TMentionElementWithAI | undefined;
 
   for (const [node] of editor.api.nodes({
     at,
     match: (n) => ElementApi.isElement(n) && n.type === mentionType,
   })) {
-    last = node as TMentionElementWithAI;
+    return node as TMentionElementWithAI;
   }
 
-  return last;
+  return undefined;
 }
 
-export function findLastMentionInBlock(
+export function findFirstMentionInBlock(
   editor: SlateEditor,
   blockPath: Path
 ): TMentionElementWithAI | undefined {
   const block = editor.api.node(blockPath);
   if (!block) return undefined;
 
-  return findLastMentionInNode(editor, block[0], blockPath);
+  return findFirstMentionInNode(editor, block[0], blockPath);
 }

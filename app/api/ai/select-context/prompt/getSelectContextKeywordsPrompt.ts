@@ -25,10 +25,6 @@ export function getSelectContextKeywordsPrompt(mentionBlockMarkdown: string) {
         <mentionBlock>@google/gemma-4-31b-it what does Getting Started say about API keys?</mentionBlock>
         <output>{"keywords":["Getting Started","API key","Setting","OpenAI","Anthropic","Gemini","Groq"]}</output>
       `,
-      dedent`
-        <mentionBlock>@google/gemma-4-31b-it what key stops the answer?</mentionBlock>
-        <output>{"keywords":["stop","key","answer"]}</output>
-      `,
     ],
 
     instruction:

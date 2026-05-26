@@ -9,7 +9,7 @@ import {
 } from 'platejs';
 
 import {
-  findLastMentionInBlock,
+  findFirstMentionInBlock,
   getMentionAIContext,
   type MentionAIContext,
 } from '@/lib/mention-ai-context';
@@ -47,7 +47,7 @@ export const MentionBelowAnswerPlugin = createSlatePlugin({
 
         if (!willCreateBlockBelow(editor, blockPath)) return;
 
-        const mention = findLastMentionInBlock(editor, blockPath);
+        const mention = findFirstMentionInBlock(editor, blockPath);
         if (!mention) return;
 
         return getMentionAIContext(mention);
@@ -67,7 +67,7 @@ export const MentionBelowAnswerPlugin = createSlatePlugin({
           const prevPath = PathApi.previous(newPath);
           if (!prevPath) return;
 
-          if (!findLastMentionInBlock(ctx.editor, prevPath)) return;
+          if (!findFirstMentionInBlock(ctx.editor, prevPath)) return;
 
           void triggerMentionAnswer(ctx.editor as PlateEditor, context);
         });

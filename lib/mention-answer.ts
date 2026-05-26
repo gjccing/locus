@@ -13,7 +13,7 @@ import {
   type ContextSelectorResult,
 } from "@/lib/context-selector-types"
 import {
-  findLastMentionInBlock,
+  findFirstMentionInBlock,
   type MentionAIContext,
 } from "@/lib/mention-ai-context"
 import { aiChatPlugin } from "@/components/editor/plugins/ai-chat-plugin"
@@ -181,7 +181,7 @@ export async function triggerMentionAnswer(
   const mentionPath = PathApi.previous(newPath)
   if (!mentionPath) return
 
-  if (!findLastMentionInBlock(editor, mentionPath)) return
+  if (!findFirstMentionInBlock(editor, mentionPath)) return
 
   // open must be true before submit so withAIChat does not strip ai marks on normalize.
   editor.setOption(AIChatPlugin, "mode", "insert")

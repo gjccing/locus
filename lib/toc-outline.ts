@@ -9,7 +9,7 @@ import {
 } from 'platejs';
 
 import {
-  findLastMentionInBlock,
+  findFirstMentionInBlock,
   getMentionAIContext,
   type TMentionElementWithAI,
 } from '@/lib/mention-ai-context';
@@ -69,7 +69,7 @@ function hasModelMention(mention: TMentionElementWithAI): boolean {
 }
 
 function isModelMentionBlock(editor: SlateEditor, path: Path): boolean {
-  const mention = findLastMentionInBlock(editor, path);
+  const mention = findFirstMentionInBlock(editor, path);
   if (!mention) return false;
   return hasModelMention(mention);
 }
@@ -116,7 +116,7 @@ export function queryTocOutline(editor: SlateEditor): TocOutlineItem[] {
 
     if (!isModelMentionBlock(editor, path)) continue;
 
-    const mention = findLastMentionInBlock(editor, path)!;
+    const mention = findFirstMentionInBlock(editor, path)!;
     const modelName = getMentionAIContext(mention)['model-name'];
     const preview = getBlockPreview(editor, path);
 

@@ -1,6 +1,6 @@
 import type { Value } from "platejs"
 
-/** Built-in onboarding content for the context canvas. */
+/** Built-in onboarding content for the context canvas. Notes that Locus is an early prototype. */
 export const contextEditorFixture: Value = [
   {
     children: [{ text: "Locus Guide" }],
@@ -10,6 +10,15 @@ export const contextEditorFixture: Value = [
     children: [
       {
         text: "Organize notes and AI answers on one editable page.",
+      },
+    ],
+    type: "p",
+  },
+  {
+    children: [
+      { text: "Early prototype. ", bold: true },
+      {
+        text: "Locus isn't product-grade yet, so you may hit bugs — thanks for trying it, and I'd love your feedback.",
       },
     ],
     type: "p",

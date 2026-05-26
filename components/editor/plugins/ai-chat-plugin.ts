@@ -10,7 +10,8 @@ export const aiChatPlugin = AIChatPlugin.extend({
     mentionAnswerAbortController: null as AbortController | null,
     mentionAnswerSelection: null as TRange | null,
     insertStreamCancelled: false,
-    contextHighlightBlockIds: [] as string[],
+    contextFixedHighlightBlockIds: [] as string[],
+    contextKeywordHighlightBlockIds: [] as string[],
     chatOptions: {
       api: '/api/ai/command',
       body: {},

@@ -18,11 +18,17 @@ export function AILoadingBar() {
     aiChatPlugin,
     'analyzingMentionKeywords'
   );
-  const contextHighlightBlockIds = usePluginOption(
+  const contextFixedHighlightBlockIds = usePluginOption(
     aiChatPlugin,
-    'contextHighlightBlockIds'
+    'contextFixedHighlightBlockIds'
   );
-  const contextHighlighted = contextHighlightBlockIds.length > 0;
+  const contextKeywordHighlightBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextKeywordHighlightBlockIds'
+  );
+  const contextHighlighted =
+    contextFixedHighlightBlockIds.length > 0 ||
+    contextKeywordHighlightBlockIds.length > 0;
 
   const { status } = chat;
 

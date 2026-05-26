@@ -27,7 +27,8 @@ import {
 import {
   clearContextHighlightBlockIds,
   hasContextHighlight,
-  setContextHighlightBlockIds,
+  setContextFixedHighlightBlockIds,
+  setContextKeywordHighlightBlockIds,
 } from "@/lib/ai-context-block-highlight"
 
 export type MentionAnswerContext = {
@@ -92,9 +93,7 @@ function buildFixedMentionSelectorResult(): ContextSelectorResult {
 }
 
 function buildMentionSelectorResult(keywords: string[]): ContextSelectorResult {
-  const methods: ContextSelectorMethod[] = [
-    ...MENTION_FIXED_SELECTOR_METHODS,
-  ]
+  const methods: ContextSelectorMethod[] = [...MENTION_FIXED_SELECTOR_METHODS]
   if (keywords.length > 0) {
     methods.unshift("getAboveValueWithKeywords")
   }
@@ -168,43 +167,6 @@ export function extractQuestionFromMentionBlock(
   return parts.join(" ").trim()
 }
 
-// function logMentionAnswerDebug({
-//   mentionBlock,
-//   mentionBlockMarkdown,
-//   question,
-//   mentionContext,
-//   valueAboveMention,
-//   selectorResult,
-//   selectedBlockIds,
-//   selectedBlockText,
-//   selectedBlocks,
-// }: {
-//   mentionBlock: unknown
-//   mentionBlockMarkdown: string
-//   question: string
-//   mentionContext: MentionAIContext
-//   valueAboveMention: unknown
-//   selectorResult: ContextSelectorResult
-//   selectedBlockIds: string[]
-//   selectedBlockText: string
-//   selectedBlocks: { id: string; text: string }[]
-// }) {
-//   console.log("[mention answer]", {
-//     mentionBlock,
-//     mentionBlockMarkdown,
-//     question,
-//     mention: {
-//       model: mentionContext["model-name"],
-//       provider: mentionContext.provider,
-//     },
-//     valueAboveMention,
-//     selectorResult,
-//     selectedBlockIds,
-//     selectedBlocks,
-//     selectedBlockText,
-//   })
-// }
-
 export async function triggerMentionAnswer(
   editor: PlateEditor,
   mentionContext: MentionAIContext
@@ -237,10 +199,6 @@ export async function triggerMentionAnswer(
   setSelectingContext(editor, true)
 
   try {
-    const mentionEntry = editor.api.node(mentionPath)
-    const mentionBlock = mentionEntry?.[0] ?? null
-    if (mentionBlock?.id)
-      setContextHighlightBlockIds(editor, [mentionBlock.id as string])
     const mentionBlockMarkdown = getMentionBlockMarkdown(editor, mentionPath)
     const question = extractQuestionFromMentionBlock(editor, mentionPath)
     // const valueAboveMention = getValueAboveMentionBlock(editor, mentionPath)
@@ -250,9 +208,8 @@ export async function triggerMentionAnswer(
       newPath,
       buildFixedMentionSelectorResult()
     )
-    if (fixedBlockIds.length > 0) {
-      setContextHighlightBlockIds(editor, fixedBlockIds)
-    }
+    setContextFixedHighlightBlockIds(editor, fixedBlockIds)
+    setContextKeywordHighlightBlockIds(editor, [])
 
     setAnalyzingMentionKeywords(editor, true)
     let selectorResult: ContextSelectorResult
@@ -273,35 +230,22 @@ export async function triggerMentionAnswer(
       ? selectContextBlockIds(editor, newPath, selectorResult)
       : []
 
-    const selectedValue = hasDocumentContext
-      ? filterValueByBlockIds(editor.children, selectedBlockIds)
-      : []
+    const selectedValue = filterValueByBlockIds(
+      editor.children,
+      fixedBlockIds.concat(selectedBlockIds)
+    )
 
     const selectedBlockText = hasDocumentContext
       ? serializeMd(editor, { value: selectedValue })
       : ""
 
-    // const selectedBlocks = selectedValue.map((block) => ({
-    //   id: String(block.id ?? ""),
-    //   text: NodeApi.string(block).trim(),
-    // }))
-
-    // logMentionAnswerDebug({
-    //   mentionBlock,
-    //   mentionBlockMarkdown,
-    //   question,
-    //   mentionContext,
-    //   valueAboveMention,
-    //   selectorResult,
-    //   selectedBlockIds,
-    //   selectedBlockText,
-    //   selectedBlocks,
-    // })
-
-    setContextHighlightBlockIds(editor, selectedBlockIds)
+    const keywordBlockIds = selectedBlockIds.filter(
+      (id) => !fixedBlockIds.includes(id)
+    )
+    setContextFixedHighlightBlockIds(editor, fixedBlockIds)
+    setContextKeywordHighlightBlockIds(editor, keywordBlockIds)
 
     const contextMarkdown = selectedBlockText
-
     clearSelectingContext(editor)
 
     void editor.getApi(AIChatPlugin).aiChat.submit(question, {

@@ -46,34 +46,52 @@ export function BlockSelection(props: PlateElementProps) {
 }
 
 export const contextBlockHighlightVariants = cva(
-  'pointer-events-none absolute inset-0 z-1 bg-highlight/20 ring-1 ring-inset ring-highlight/35 transition-opacity',
+  'pointer-events-none absolute inset-0 z-1 ring-1 ring-inset transition-opacity',
   {
     defaultVariants: {
       active: true,
+      variant: 'fixed',
     },
     variants: {
       active: {
         false: 'opacity-0',
         true: 'opacity-100',
       },
+      variant: {
+        fixed: 'bg-brand/15 ring-brand/30',
+        keyword: 'bg-highlight/20 ring-highlight/35',
+      },
     },
   }
 );
 
 export function ContextBlockHighlight(props: PlateElementProps) {
-  const highlightBlockIds = usePluginOption(
+  const fixedBlockIds = usePluginOption(
     aiChatPlugin,
-    'contextHighlightBlockIds'
+    'contextFixedHighlightBlockIds'
+  );
+  const keywordBlockIds = usePluginOption(
+    aiChatPlugin,
+    'contextKeywordHighlightBlockIds'
   );
   const isDragging = usePluginOption(DndPlugin, 'isDragging');
   const blockId = props.element.id as string | undefined;
 
   if (
     !blockId ||
-    !highlightBlockIds.includes(blockId) ||
     props.plugin.key === 'tr' ||
     props.plugin.key === 'table'
   ) {
+    return null;
+  }
+
+  const variant = fixedBlockIds.includes(blockId)
+    ? 'fixed'
+    : keywordBlockIds.includes(blockId)
+      ? 'keyword'
+      : null;
+
+  if (!variant) {
     return null;
   }
 
@@ -81,8 +99,10 @@ export function ContextBlockHighlight(props: PlateElementProps) {
     <div
       className={contextBlockHighlightVariants({
         active: !isDragging,
+        variant,
       })}
       data-slot="context-block-highlight"
+      data-context-highlight={variant}
     />
   );
 }

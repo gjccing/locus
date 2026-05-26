@@ -1,26 +1,26 @@
-import dedent from 'dedent';
+import dedent from "dedent"
 
-import { buildStructuredPrompt } from '../utils';
-import { commonGenerateRules } from './common';
+import { buildStructuredPrompt } from "../utils"
+import { commonGenerateRules } from "./common"
 
 export type MentionAnswerPromptInput = {
-  question: string;
-  contextMarkdown: string;
-};
+  question: string
+  contextMarkdown: string
+}
 
 export function getMentionAnswerPrompt({
   question,
   contextMarkdown,
 }: MentionAnswerPromptInput) {
-  const trimmedQuestion = question.trim();
-  const instruction =
-    trimmedQuestion || 'Respond helpfully to the user.';
-  const context = contextMarkdown.trim() || undefined;
+  const trimmedInstruction = question.trim()
+  const instruction = trimmedInstruction || "Respond helpfully to the user."
+  const context = contextMarkdown.trim() || undefined
 
   return buildStructuredPrompt({
     task: dedent`
       You are an assistant embedded in a document editor.
-      Answer the user's question directly. Use <context> as reference material when it is provided.
+      Follow the user's instruction in <instruction> directly.
+      Use <context> as reference material when it is provided.
       Do NOT continue or extend the document prose unless the user explicitly asks you to write or continue content.
       Your reply is inserted as body text in the document.
     `,
@@ -42,6 +42,20 @@ export function getMentionAnswerPrompt({
       `,
       dedent`
         <instruction>
+        Summarize the key points above in two sentences.
+        </instruction>
+
+        <context>
+        Key metrics: latency under 2s, and context size reduced by 50%.
+        Deployment uses a blue-green strategy with automated rollback.
+        </context>
+
+        <output>
+        The document highlights latency under 2 seconds and at least 50% context-size reduction. It also describes blue-green deployment with automated rollback.
+        </output>
+      `,
+      dedent`
+        <instruction>
         Tell me a joke
         </instruction>
 
@@ -52,10 +66,10 @@ export function getMentionAnswerPrompt({
     ],
     rules: dedent`
       ${commonGenerateRules}
-      - Answer the question in <instruction>; do not repeat the question verbatim unless asked.
+      - Follow <instruction>; do not repeat it verbatim unless asked.
       - Write in clear prose or lists as appropriate; stay concise unless the user asks for detail.
-      - When <context> is empty or omitted, answer from general knowledge or the question alone.
-      - Do NOT continue writing the document as if you are the author; respond as an assistant answering a question.
+      - When <context> is empty or omitted, respond from general knowledge or the instruction alone.
+      - Do NOT continue writing the document as if you are the author; respond as an assistant to the user's instruction.
     `,
-  });
+  })
 }

@@ -68,8 +68,7 @@ export async function POST(req: NextRequest) {
   if (!mentionApiKey && !defaultGeminiKey) {
     return NextResponse.json(
       {
-        error:
-          "Missing API key. Add one in settings or set GOOGLE_GEMINI_KEY.",
+        error: "Missing API key. Add one in settings or set GOOGLE_GEMINI_KEY.",
       },
       { status: 401 }
     )
@@ -78,10 +77,7 @@ export async function POST(req: NextRequest) {
   const isSelecting = editor.api.isExpanded()
 
   const resolveModel = (resolvedModelId?: string) => {
-    const id =
-      resolvedModelId?.trim() ||
-      modelId ||
-      "gemini-2.5-flash-lite"
+    const id = resolvedModelId?.trim() || modelId || "gemini-2.5-flash-lite"
 
     return createResolvedMentionLanguageModel({
       apiKey: key,

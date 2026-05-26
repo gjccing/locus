@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { Toaster } from "@/components/ui/sonner"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -78,6 +79,7 @@ export default function RootLayout({
           </TooltipProvider>
         </ThemeProvider>
       </body>
+      <SpeedInsights />
     </html>
   )
 }

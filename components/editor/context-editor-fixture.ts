@@ -97,7 +97,7 @@ export const contextEditorFixture: Value = [
     children: [
       { text: "Press " },
       { text: "Esc", code: true },
-      { text: " to stop generating" },
+      { text: " to stop the AI reply" },
     ],
     type: "p",
     indent: 1,
@@ -139,7 +139,7 @@ export const contextEditorFixture: Value = [
         type: "mention",
         value: "google/gemma-4-31b-it",
       },
-      { text: " Which key stops generation?" },
+      { text: " Which key stops the AI reply?" },
     ],
     type: "p",
     indent: 1,

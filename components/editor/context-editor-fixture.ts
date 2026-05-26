@@ -50,17 +50,6 @@ export const contextEditorFixture: Value = [
     listStyleType: "disc",
   },
   {
-    children: [
-      { text: "Conclusions live on the page", bold: true },
-      {
-        text: " — reorganize replies into your own notes anytime",
-      },
-    ],
-    type: "p",
-    indent: 1,
-    listStyleType: "disc",
-  },
-  {
     children: [{ text: "Getting Started" }],
     type: "h2",
   },
